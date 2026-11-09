@@ -29,12 +29,12 @@ jobs:
           npm ci
           npm run build
 
-      - name: Deploy via SSH
+      - name: Deploy via SSH Key
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.HOSTINGER_HOST }}
           username: ${{ secrets.HOSTINGER_USERNAME }}
-          password: ${{ secrets.HOSTINGER_PASSWORD }}
+          key: ${{ secrets.HOSTINGER_SSH_KEY }}
           port: ${{ secrets.HOSTINGER_PORT || 65002 }}
           script: |
             cd ${{ secrets.HOSTINGER_PROJECT_PATH }}
