@@ -36,13 +36,39 @@ jobs:
           npm ci
           npm run build
 
-      - name: 🚀 Deploy Files & Run Commands on Hostinger via SSH
+      # OPSI 1: Deploy menggunakan HOSTINGER_PASSWORD
+      - name: 🚀 Deploy via SSH Password
+        if: ${{ secrets.HOSTINGER_PASSWORD != '' && secrets.HOSTINGER_SSH_KEY == '' }}
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.HOSTINGER_HOST }}
           username: ${{ secrets.HOSTINGER_USERNAME }}
-          password: ${{ secrets.HOSTINGER_PASSWORD }} # Bisa pakai password ATAU key (lihat opsi di bawah)
-          key: ${{ secrets.HOSTINGER_SSH_KEY }}       # Jika pakai SSH Key
+          password: ${{ secrets.HOSTINGER_PASSWORD }}
+          port: ${{ secrets.HOSTINGER_PORT || 65002 }}
+          script: |
+            cd ${{ secrets.HOSTINGER_PROJECT_PATH }}
+            php artisan down || true
+            git fetch origin main
+            git reset --hard origin/main
+            composer install --no-dev --optimize-autoloader --no-interaction
+            npm ci
+            npm run build
+            php artisan migrate --force
+            php artisan storage:link || true
+            php artisan config:cache
+            php artisan route:cache
+            php artisan view:cache
+            php artisan optimize
+            php artisan up
+
+      # OPSI 2: Deploy menggunakan HOSTINGER_SSH_KEY
+      - name: 🚀 Deploy via SSH Key
+        if: ${{ secrets.HOSTINGER_SSH_KEY != '' }}
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.HOSTINGER_HOST }}
+          username: ${{ secrets.HOSTINGER_USERNAME }}
+          key: ${{ secrets.HOSTINGER_SSH_KEY }}
           port: ${{ secrets.HOSTINGER_PORT || 65002 }}
           script: |
             cd ${{ secrets.HOSTINGER_PROJECT_PATH }}
