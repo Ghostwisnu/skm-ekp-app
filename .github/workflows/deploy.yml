@@ -26,14 +26,17 @@ jobs:
 
       - name: 🔍 Debug: Check PHP Version
         run: |
+          echo "=== PHP Version ==="
           php -v
+          echo "=== PHP Path ==="
           which php
-          echo "PHP path: $(which php)"
+          echo "=== Composer Version ==="
+          composer --version
 
       - name: 📦 Install Composer Dependencies
         run: |
           rm -f composer.lock
-          php -d memory_limit=512M composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction --ignore-platform-reqs
+          COMPOSER_ROOT_VERSION=dev-main composer update --no-dev --prefer-dist --optimize-autoloader --no-interaction --ignore-platform-reqs
 
       - name: 🟢 Setup Node.js
         uses: actions/setup-node@v4
@@ -57,11 +60,13 @@ jobs:
           port: ${{ secrets.HOSTINGER_PORT || 65002 }}
           script: |
             cd ${{ secrets.HOSTINGER_PROJECT_PATH }}
+            echo "=== Hostinger PHP Version ==="
+            php -v
             php artisan down || true
             git fetch origin main
             git reset --hard origin/main
             rm -f composer.lock
-            php -d memory_limit=512M composer install --no-dev --optimize-autoloader --no-interaction --ignore-platform-reqs
+            COMPOSER_ROOT_VERSION=dev-main composer install --no-dev --optimize-autoloader --no-interaction --ignore-platform-reqs
             npm ci
             npm run build
             php artisan migrate --force
@@ -83,11 +88,13 @@ jobs:
           port: ${{ secrets.HOSTINGER_PORT || 65002 }}
           script: |
             cd ${{ secrets.HOSTINGER_PROJECT_PATH }}
+            echo "=== Hostinger PHP Version ==="
+            php -v
             php artisan down || true
             git fetch origin main
             git reset --hard origin/main
             rm -f composer.lock
-            php -d memory_limit=512M composer install --no-dev --optimize-autoloader --no-interaction --ignore-platform-reqs
+            COMPOSER_ROOT_VERSION=dev-main composer install --no-dev --optimize-autoloader --no-interaction --ignore-platform-reqs
             npm ci
             npm run build
             php artisan migrate --force
