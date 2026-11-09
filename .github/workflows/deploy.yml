@@ -18,9 +18,12 @@ jobs:
       - name: 🐘 Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.4'
-          extensions: mbstring, xml, ctype, iconv, mysql, pdo, dom, curl
+          php-version: '8.5'
+          extensions: mbstring, xml, ctype, iconv, mysql, pdo, dom, curl, gd, zip
           tools: composer
+          ini-values: |
+            memory_limit=512M
+            max_execution_time=300
 
       - name: 📦 Install Composer Dependencies
         run: composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction --ignore-platform-reqs
