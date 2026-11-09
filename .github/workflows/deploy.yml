@@ -1,56 +1,35 @@
-name: Auto Deploy to Hostinger Subdomain
+name: Auto Deploy to Hostinger
 
 on:
   push:
-    branches:
-      - main
-      - master
+    branches: [main]
 
 jobs:
   deploy:
-    name: Build & Deploy to Hostinger
     runs-on: ubuntu-latest
-
     steps:
-      - name: 📥 Checkout Repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: 🐘 Setup PHP 8.5
+      - name: Setup PHP 8.5
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.5'
           extensions: mbstring, xml, ctype, iconv, mysql, pdo, dom, curl, gd, zip, fileinfo, bcmath
-          ini-values: |
-            memory_limit=512M
-            max_execution_time=300
 
-      - name: 🔍 Debug: Check PHP Version
-        run: |
-          echo "=== PHP Version ==="
-          php -v
-          echo "=== PHP Path ==="
-          which php
-          echo "=== Composer Version ==="
-          composer --version
+      - name: Install Composer
+        run: composer install --no-dev --no-interaction --ignore-platform-reqs
 
-      - name: 📦 Install Composer Dependencies
-        run: |
-          rm -f composer.lock
-          COMPOSER_ROOT_VERSION=dev-main composer update --no-dev --prefer-dist --optimize-autoloader --no-interaction --ignore-platform-reqs
-
-      - name: 🟢 Setup Node.js
+      - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm'
 
-      - name: 🎨 Build Frontend Assets (Vite / React)
+      - name: Build Frontend
         run: |
           npm ci
           npm run build
 
-      - name: 🚀 Deploy via SSH Password
-        if: ${{ secrets.HOSTINGER_PASSWORD != '' && secrets.HOSTINGER_SSH_KEY == '' }}
+      - name: Deploy via SSH
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.HOSTINGER_HOST }}
@@ -59,47 +38,12 @@ jobs:
           port: ${{ secrets.HOSTINGER_PORT || 65002 }}
           script: |
             cd ${{ secrets.HOSTINGER_PROJECT_PATH }}
-            echo "=== Hostinger PHP Version ==="
-            php -v
             php artisan down || true
             git fetch origin main
             git reset --hard origin/main
-            rm -f composer.lock
-            COMPOSER_ROOT_VERSION=dev-main composer install --no-dev --optimize-autoloader --no-interaction --ignore-platform-reqs
+            composer install --no-dev --no-interaction --ignore-platform-reqs
             npm ci
             npm run build
             php artisan migrate --force
-            php artisan storage:link || true
-            php artisan config:cache
-            php artisan route:cache
-            php artisan view:cache
-            php artisan optimize
-            php artisan up
-
-      # OPSI 2: Deploy menggunakan HOSTINGER_SSH_KEY
-      - name: 🚀 Deploy via SSH Key
-        if: ${{ secrets.HOSTINGER_SSH_KEY != '' }}
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.HOSTINGER_HOST }}
-          username: ${{ secrets.HOSTINGER_USERNAME }}
-          key: ${{ secrets.HOSTINGER_SSH_KEY }}
-          port: ${{ secrets.HOSTINGER_PORT || 65002 }}
-          script: |
-            cd ${{ secrets.HOSTINGER_PROJECT_PATH }}
-            echo "=== Hostinger PHP Version ==="
-            php -v
-            php artisan down || true
-            git fetch origin main
-            git reset --hard origin/main
-            rm -f composer.lock
-            COMPOSER_ROOT_VERSION=dev-main composer install --no-dev --optimize-autoloader --no-interaction --ignore-platform-reqs
-            npm ci
-            npm run build
-            php artisan migrate --force
-            php artisan storage:link || true
-            php artisan config:cache
-            php artisan route:cache
-            php artisan view:cache
             php artisan optimize
             php artisan up
