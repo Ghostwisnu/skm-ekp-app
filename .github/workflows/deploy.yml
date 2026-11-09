@@ -69,6 +69,7 @@ jobs:
             php artisan down || true
             composer install --no-dev --no-interaction --ignore-platform-reqs
             php artisan migrate --force
+            php artisan db:seed --class=DatabaseSeeder || true
             php artisan storage:link || true
             php artisan config:cache
             php artisan route:cache

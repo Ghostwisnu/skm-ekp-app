@@ -21,9 +21,10 @@ import {
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { dashboard } from '@/routes';
+import { getUserRole } from '@/types/auth';
 import type { Auth, NavItem } from '@/types';
 
-const navByRole = (role: Auth['user']['role']): NavItem[] => {
+const navByRole = (role: string): NavItem[] => {
     const items: (NavItem & { roles: Auth['user']['role'][] })[] = [
         {
             title: 'Dashboard',
@@ -75,7 +76,7 @@ const navByRole = (role: Auth['user']['role']): NavItem[] => {
         },
     ];
 
-    return items.filter((item) => item.roles.includes(role));
+    return items.filter((item) => item.roles.some((r) => r === role));
 };
 export function AppSidebar() {
     const { auth } = usePage<{ auth: Auth }>().props;
@@ -94,7 +95,7 @@ export function AppSidebar() {
             </SidebarHeader>
 
             <SidebarContent>
-                <NavMain items={navByRole(auth.user.role)} />
+                <NavMain items={navByRole(getUserRole(auth.user))} />
             </SidebarContent>
 
             <SidebarFooter>

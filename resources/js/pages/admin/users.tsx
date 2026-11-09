@@ -23,7 +23,7 @@ type UserForm = { name: string; email: string; role: string; password: string };
 // Helper to get first role from user
 const getUserRole = (user: ManagedUser): string => {
     if (user.role) return user.role;
-    if (user.roles?.length > 0) return user.roles[0].name;
+    if (user.roles && user.roles.length > 0) return user.roles[0].name;
     return 'operator';
 };
 
@@ -39,7 +39,7 @@ function UserDialog({
     const form = useForm<UserForm>({
         name: user?.name ?? "",
         email: user?.email ?? "",
-        role: getUserRole(user),
+        role: user ? getUserRole(user) : 'operator',
         password: "",
     });
 
