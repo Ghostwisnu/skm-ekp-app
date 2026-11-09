@@ -49,7 +49,6 @@ jobs:
           npm ci
           npm run build
 
-      # OPSI 1: Deploy menggunakan HOSTINGER_PASSWORD
       - name: 🚀 Deploy via SSH Password
         if: ${{ secrets.HOSTINGER_PASSWORD != '' && secrets.HOSTINGER_SSH_KEY == '' }}
         uses: appleboy/ssh-action@v1.0.3
