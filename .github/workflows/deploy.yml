@@ -15,18 +15,20 @@ jobs:
       - name: 📥 Checkout Repository
         uses: actions/checkout@v4
 
-      - name: 🐘 Setup PHP
+      - name: 🐘 Setup PHP 8.5
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.5'
-          extensions: mbstring, xml, ctype, iconv, mysql, pdo, dom, curl, gd, zip
+          extensions: mbstring, xml, ctype, iconv, mysql, pdo, dom, curl, gd, zip, fileinfo, bcmath
           tools: composer
           ini-values: |
             memory_limit=512M
             max_execution_time=300
 
       - name: 📦 Install Composer Dependencies
-        run: composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction --ignore-platform-reqs
+        run: |
+          rm -f composer.lock
+          composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction --ignore-platform-reqs
 
       - name: 🟢 Setup Node.js
         uses: actions/setup-node@v4
@@ -53,7 +55,8 @@ jobs:
             php artisan down || true
             git fetch origin main
             git reset --hard origin/main
-            composer install --no-dev --optimize-autoloader --no-interaction
+            rm -f composer.lock
+            composer install --no-dev --optimize-autoloader --no-interaction --ignore-platform-reqs
             npm ci
             npm run build
             php artisan migrate --force
@@ -78,7 +81,8 @@ jobs:
             php artisan down || true
             git fetch origin main
             git reset --hard origin/main
-            composer install --no-dev --optimize-autoloader --no-interaction
+            rm -f composer.lock
+            composer install --no-dev --optimize-autoloader --no-interaction --ignore-platform-reqs
             npm ci
             npm run build
             php artisan migrate --force
