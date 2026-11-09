@@ -2,7 +2,7 @@ name: Auto Deploy to Hostinger
 
 on:
   push:
-    branches: [main]
+    branches: [main, master]
 
 jobs:
   deploy:
@@ -33,17 +33,16 @@ jobs:
           npm ci
           npm run build
 
-      - name: 🔑 Setup SSH Key & Known Hosts
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.HOSTINGER_SSH_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -p ${{ secrets.HOSTINGER_PORT || 65002 }} -H ${{ secrets.HOSTINGER_HOST }} >> ~/.ssh/known_hosts 2>/dev/null
-          ssh-keyscan -H ${{ secrets.HOSTINGER_HOST }} >> ~/.ssh/known_hosts 2>/dev/null
-          cat ~/.ssh/known_hosts
+      - name: 🔑 Install SSH Key
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.HOSTINGER_SSH_KEY }}
 
       - name: 📤 Upload Files to Hostinger via Rsync
         run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -p ${{ secrets.HOSTINGER_PORT || 65002 }} -H ${{ secrets.HOSTINGER_HOST }} >> ~/.ssh/known_hosts 2>/dev/null || true
+          
           rsync -avz -e "ssh -p ${{ secrets.HOSTINGER_PORT || 65002 }} -o StrictHostKeyChecking=no" \
             --exclude='.env' \
             --exclude='.git' \
