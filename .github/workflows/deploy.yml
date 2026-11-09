@@ -6,30 +6,49 @@ on:
 
 jobs:
   deploy:
+    name: Build & Deploy to Hostinger
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
 
-      - name: Setup PHP 8.5
+    steps:
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: 🐘 Setup PHP 8.5
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.5'
           extensions: mbstring, xml, ctype, iconv, mysql, pdo, dom, curl, gd, zip, fileinfo, bcmath
 
-      - name: Install Composer
+      - name: 📦 Install Composer Dependencies
         run: composer install --no-dev --no-interaction --ignore-platform-reqs
 
-      - name: Setup Node
+      - name: 🟢 Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
+          cache: 'npm'
 
-      - name: Build Frontend
+      - name: 🎨 Build Frontend Assets
         run: |
           npm ci
           npm run build
 
-      - name: Deploy via SSH Key
+      - name: 📤 Upload Files to Hostinger via Rsync
+        run: |
+          rsync -avz -e "ssh -p ${{ secrets.HOSTINGER_PORT || 65002 }}" \
+            --exclude='.env' \
+            --exclude='.git' \
+            --exclude='.github' \
+            --exclude='node_modules' \
+            --exclude='storage/framework/cache/*' \
+            --exclude='storage/framework/sessions/*' \
+            --exclude='storage/framework/views/*' \
+            --exclude='storage/logs/*' \
+            --exclude='storage/*.key' \
+            --exclude='storage/framework/maintenance.php' \
+            ./ ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }}:${{ secrets.HOSTINGER_PROJECT_PATH }}/
+
+      - name: ⚡ Run Artisan Commands on Hostinger
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.HOSTINGER_HOST }}
@@ -37,58 +56,15 @@ jobs:
           key: ${{ secrets.HOSTINGER_SSH_KEY }}
           port: ${{ secrets.HOSTINGER_PORT || 65002 }}
           script: |
-            # Trim trailing newlines from path
-            PROJECT_PATH="$(echo '${{ secrets.HOSTINGER_PROJECT_PATH }}' | tr -d '\n\r')"
-            echo "=== DEBUG: Using Project Path ==="
-            echo "$PROJECT_PATH"
-            
-            # Check if path exists
-            if [ ! -d "$PROJECT_PATH" ]; then
-              echo "ERROR: Project path does not exist!"
-              echo "Searching for composer.json..."
-              find /home -name "composer.json" 2>/dev/null
-              exit 1
-            fi
-            
-            cd "$PROJECT_PATH"
-            echo "=== DEBUG: Current Directory ==="
-            pwd
-            echo "=== DEBUG: List Files ==="
-            ls -la
-            
-            # Check for required files
-            if [ ! -f "artisan" ]; then
-              echo "ERROR: artisan not found in $PROJECT_PATH"
-              echo "Searching for artisan..."
-              find /home -name "artisan" 2>/dev/null
-              exit 1
-            fi
-            
-            if [ ! -f "composer.json" ]; then
-              echo "ERROR: composer.json not found!"
-              exit 1
-            fi
-            
-            if [ ! -d ".git" ]; then
-              echo "ERROR: Not a git repository!"
-              echo "Initializing git..."
-              git init
-              git remote add origin https://github.com/$(git config --get remote.origin.url 2>/dev/null || echo "YOUR_REPO_URL")
-            fi
-            
-            if ! command -v npm &> /dev/null; then
-              echo "ERROR: npm not found! Install Node.js via Hostinger hPanel → Node.js"
-              exit 1
-            fi
-            
+            cd ${{ secrets.HOSTINGER_PROJECT_PATH }}
             echo "=== Starting Deployment ==="
             php artisan down || true
-            git fetch origin main
-            git reset --hard origin/main
             composer install --no-dev --no-interaction --ignore-platform-reqs
-            npm ci
-            npm run build
             php artisan migrate --force
+            php artisan storage:link || true
+            php artisan config:cache
+            php artisan route:cache
+            php artisan view:cache
             php artisan optimize
             php artisan up
             echo "=== Deployment Complete ==="
