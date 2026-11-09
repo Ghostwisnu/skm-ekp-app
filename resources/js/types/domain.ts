@@ -1,5 +1,13 @@
 export type Role = 'admin' | 'operator' | 'keuangan';
 
+export type UserWithRoles = {
+    id: number;
+    name: string;
+    email: string;
+    role?: Role | string;
+    roles?: Array<{ id: number; name: string }>;
+};
+
 export type Paginated<T> = {
     data: T[];
     current_page: number;

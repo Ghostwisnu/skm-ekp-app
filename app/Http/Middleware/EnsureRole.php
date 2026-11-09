@@ -15,8 +15,17 @@ class EnsureRole
     {
         $user = $request->user();
 
-        abort_unless($user !== null && in_array($user->role->value, $roles, true), 403);
+        if ($user === null) {
+            abort(403);
+        }
 
-        return $next($request);
+        // Check if user has any of the required roles
+        foreach ($roles as $role) {
+            if ($user->hasRole($role)) {
+                return $next($request);
+            }
+        }
+
+        abort(403);
     }
 }

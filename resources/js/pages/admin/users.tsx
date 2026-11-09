@@ -7,11 +7,25 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import type { Auth } from "@/types";
-import type { Role } from "@/types/domain";
 
-type ManagedUser = { id: number; name: string; email: string; role: Role };
-type RoleOption = { value: Role; label: string };
+type ManagedUser = {
+    id: number;
+    name: string;
+    email: string;
+    role?: string | null;
+    roles?: Array<{ id: number; name: string }>;
+};
+
+type RoleOption = { value: string; label: string };
+
 type UserForm = { name: string; email: string; role: string; password: string };
+
+// Helper to get first role from user
+const getUserRole = (user: ManagedUser): string => {
+    if (user.role) return user.role;
+    if (user.roles?.length > 0) return user.roles[0].name;
+    return 'operator';
+};
 
 function UserDialog({
     user,
@@ -25,7 +39,7 @@ function UserDialog({
     const form = useForm<UserForm>({
         name: user?.name ?? "",
         email: user?.email ?? "",
-        role: user?.role ?? "operator",
+        role: getUserRole(user),
         password: "",
     });
 
@@ -201,36 +215,39 @@ export default function Users({
                     </tr>
                 </thead>
                 <tbody>
-                    {users.map((user) => (
-                        <tr key={user.id}>
-                            <Td>{user.name}</Td>
-                            <Td>{user.email}</Td>
-                            <Td className="capitalize">{user.role}</Td>
-                            <Td className="space-x-2 text-right whitespace-nowrap">
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => setDialog({ user })}
-                                >
-                                    Ubah
-                                </Button>
-                                {user.id !== auth.user.id && (
+                    {users.map((user) => {
+                        const role = getUserRole(user);
+                        return (
+                            <tr key={user.id}>
+                                <Td>{user.name}</Td>
+                                <Td>{user.email}</Td>
+                                <Td className="capitalize">{role}</Td>
+                                <Td className="space-x-2 text-right whitespace-nowrap">
                                     <Button
-                                        variant="destructive"
+                                        variant="outline"
                                         size="sm"
-                                        onClick={() =>
-                                            confirmDelete(
-                                                `/admin/users/${user.id}`,
-                                                "Hapus user ini?",
-                                            )
-                                        }
+                                        onClick={() => setDialog({ user })}
                                     >
-                                        Hapus
+                                        Ubah
                                     </Button>
-                                )}
-                            </Td>
-                        </tr>
-                    ))}
+                                    {user.id !== auth.user.id && (
+                                        <Button
+                                            variant="destructive"
+                                            size="sm"
+                                            onClick={() =>
+                                                confirmDelete(
+                                                    `/admin/users/${user.id}`,
+                                                    "Hapus user ini?",
+                                                )
+                                            }
+                                        >
+                                            Hapus
+                                        </Button>
+                                    )}
+                                </Td>
+                            </tr>
+                        );
+                    })}
                 </tbody>
             </DataTable>
             {dialog && (

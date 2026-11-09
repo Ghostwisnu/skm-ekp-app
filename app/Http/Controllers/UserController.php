@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Enums\Role;
 use App\Http\Requests\UserRequest;
 use App\Models\Setting;
 use App\Models\User;
@@ -10,14 +9,18 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
+use Spatie\Permission\Models\Role;
 
 class UserController extends Controller
 {
     public function index(): Response
     {
+        $users = User::with('roles')->get(['id', 'name', 'email']);
+        $roles = Role::all();
+
         return Inertia::render('admin/users', [
-            'users' => User::query()->orderBy('name')->get(['id', 'name', 'email', 'role']),
-            'roles' => array_map(fn (Role $role): array => ['value' => $role->value, 'label' => $role->label()], Role::cases()),
+            'users' => $users,
+            'roles' => $roles->map(fn ($role) => ['value' => $role->name, 'label' => ucfirst($role->name)]),
             'ppnDefault' => Setting::ppnDefault(),
             'companyDetails' => Setting::companyDetails(),
         ]);
@@ -25,7 +28,20 @@ class UserController extends Controller
 
     public function store(UserRequest $request): RedirectResponse
     {
-        User::query()->create($request->validated());
+        $data = $request->validated();
+
+        $user = User::query()->create([
+            'name' => $data['name'],
+            'email' => $data['email'],
+            'password' => bcrypt($data['password']),
+        ]);
+
+        // Assign role
+        $role = Role::findByName($data['role']);
+        if ($role) {
+            $user->assignRole($role);
+        }
+
         Inertia::flash('toast', ['type' => 'success', 'message' => 'User ditambahkan.']);
 
         return back();
@@ -35,11 +51,23 @@ class UserController extends Controller
     {
         $data = $request->validated();
 
-        if (empty($data['password'])) {
-            unset($data['password']);
+        $updateData = [
+            'name' => $data['name'],
+            'email' => $data['email'],
+        ];
+
+        if (! empty($data['password'])) {
+            $updateData['password'] = bcrypt($data['password']);
         }
 
-        $user->update($data);
+        $user->update($updateData);
+
+        // Sync role
+        $role = Role::findByName($data['role']);
+        if ($role) {
+            $user->syncRoles([$role]);
+        }
+
         Inertia::flash('toast', ['type' => 'success', 'message' => 'User diperbarui.']);
 
         return back();
