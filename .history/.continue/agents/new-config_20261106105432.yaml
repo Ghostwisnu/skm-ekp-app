@@ -1,0 +1,12 @@
+// Konfigurasi settings.json Continue / Cline:
+{
+  "models": [
+    {
+      "title": "DataByte Claude 3.7",
+      "provider": "openai",
+      "model": "anthropic/claude-3.7-sonnet",
+      "apiBase": "https://ai.databyte.co.id/v1",
+      "apiKey": "sk-db-tgF6rK..."
+    }
+  ]
+}
