@@ -56,6 +56,9 @@ jobs:
             --exclude='storage/framework/maintenance.php' \
             ./ ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }}:${{ secrets.HOSTINGER_PROJECT_PATH }}/
 
+          rsync -avz --delete -e "ssh -p ${{ secrets.HOSTINGER_PORT || 65002 }} -o StrictHostKeyChecking=no" \
+            public/build/ ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }}:/home/u234139505/domains/inventoryai.id/public_html/ekp/build/
+
       - name: ⚡ Run Artisan Commands on Hostinger
         uses: appleboy/ssh-action@v1.0.3
         with:
