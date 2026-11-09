@@ -33,9 +33,18 @@ jobs:
           npm ci
           npm run build
 
+      - name: 🔑 Setup SSH Key & Known Hosts
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.HOSTINGER_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -p ${{ secrets.HOSTINGER_PORT || 65002 }} -H ${{ secrets.HOSTINGER_HOST }} >> ~/.ssh/known_hosts 2>/dev/null
+          ssh-keyscan -H ${{ secrets.HOSTINGER_HOST }} >> ~/.ssh/known_hosts 2>/dev/null
+          cat ~/.ssh/known_hosts
+
       - name: 📤 Upload Files to Hostinger via Rsync
         run: |
-          rsync -avz -e "ssh -p ${{ secrets.HOSTINGER_PORT || 65002 }}" \
+          rsync -avz -e "ssh -p ${{ secrets.HOSTINGER_PORT || 65002 }} -o StrictHostKeyChecking=no" \
             --exclude='.env' \
             --exclude='.git' \
             --exclude='.github' \
