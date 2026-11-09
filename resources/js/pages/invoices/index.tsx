@@ -69,7 +69,8 @@ export default function InvoiceIndex({
                                 </Link>
                             </Td>
                             <Td>
-                                {invoice.client?.nama} → {invoice.destination_client?.nama ?? '-'}
+                                {invoice.client?.nama} →{' '}
+                                {invoice.destination_client?.nama ?? '-'}
                             </Td>
                             <Td>
                                 {formatDate(invoice.tanggal_awal)} –{' '}

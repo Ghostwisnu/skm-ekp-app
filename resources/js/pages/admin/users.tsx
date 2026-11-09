@@ -1,13 +1,18 @@
-import { useForm, usePage } from "@inertiajs/react";
-import { useState } from "react";
-import { confirmDelete } from "@/components/confirm-delete";
-import { NativeSelect } from "@/components/native-select";
-import { DataTable, Field, PageShell, Td, Th } from "@/components/page-shell";
-import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import type { Auth } from "@/types";
-import type { Role } from "@/types/domain";
+import { useForm, usePage } from '@inertiajs/react';
+import { useState } from 'react';
+import { confirmDelete } from '@/components/confirm-delete';
+import { NativeSelect } from '@/components/native-select';
+import { DataTable, Field, PageShell, Td, Th } from '@/components/page-shell';
+import { Button } from '@/components/ui/button';
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import type { Auth } from '@/types';
+import type { Role } from '@/types/domain';
 
 type ManagedUser = { id: number; name: string; email: string; role: Role };
 type RoleOption = { value: Role; label: string };
@@ -23,10 +28,10 @@ function UserDialog({
     onClose: () => void;
 }) {
     const form = useForm<UserForm>({
-        name: user?.name ?? "",
-        email: user?.email ?? "",
-        role: user?.role ?? "operator",
-        password: "",
+        name: user?.name ?? '',
+        email: user?.email ?? '',
+        role: user?.role ?? 'operator',
+        password: '',
     });
 
     const submit = (event: React.FormEvent) => {
@@ -36,7 +41,7 @@ function UserDialog({
         if (user) {
             form.put(`/admin/users/${user.id}`, options);
         } else {
-            form.post("/admin/users", options);
+            form.post('/admin/users', options);
         }
     };
 
@@ -44,26 +49,34 @@ function UserDialog({
         <Dialog open onOpenChange={(open) => !open && onClose()}>
             <DialogContent>
                 <DialogHeader>
-                    <DialogTitle>{user ? "Ubah User" : "Tambah User"}</DialogTitle>
+                    <DialogTitle>
+                        {user ? 'Ubah User' : 'Tambah User'}
+                    </DialogTitle>
                 </DialogHeader>
                 <form onSubmit={submit} className="grid gap-3">
                     <Field label="Nama" error={form.errors.name}>
                         <Input
                             value={form.data.name}
-                            onChange={(e) => form.setData("name", e.target.value)}
+                            onChange={(e) =>
+                                form.setData('name', e.target.value)
+                            }
                         />
                     </Field>
                     <Field label="Email" error={form.errors.email}>
                         <Input
                             type="email"
                             value={form.data.email}
-                            onChange={(e) => form.setData("email", e.target.value)}
+                            onChange={(e) =>
+                                form.setData('email', e.target.value)
+                            }
                         />
                     </Field>
                     <Field label="Role" error={form.errors.role}>
                         <NativeSelect
                             value={form.data.role}
-                            onChange={(e) => form.setData("role", e.target.value)}
+                            onChange={(e) =>
+                                form.setData('role', e.target.value)
+                            }
                         >
                             {roles.map((role) => (
                                 <option key={role.value} value={role.value}>
@@ -73,13 +86,19 @@ function UserDialog({
                         </NativeSelect>
                     </Field>
                     <Field
-                        label={user ? "Password baru (kosongkan jika tidak diubah)" : "Password"}
+                        label={
+                            user
+                                ? 'Password baru (kosongkan jika tidak diubah)'
+                                : 'Password'
+                        }
                         error={form.errors.password}
                     >
                         <Input
                             type="password"
                             value={form.data.password}
-                            onChange={(e) => form.setData("password", e.target.value)}
+                            onChange={(e) =>
+                                form.setData('password', e.target.value)
+                            }
                         />
                     </Field>
                     <Button type="submit" disabled={form.processing}>
@@ -98,7 +117,7 @@ function PpnForm({ ppnDefault }: { ppnDefault: number }) {
         <form
             onSubmit={(event) => {
                 event.preventDefault();
-                form.put("/admin/settings", { preserveScroll: true });
+                form.put('/admin/settings', { preserveScroll: true });
             }}
             className="flex max-w-sm items-end gap-3 rounded-md border bg-card p-3"
         >
@@ -109,7 +128,9 @@ function PpnForm({ ppnDefault }: { ppnDefault: number }) {
                     max="100"
                     step="0.01"
                     value={form.data.ppn_default}
-                    onChange={(e) => form.setData("ppn_default", e.target.value)}
+                    onChange={(e) =>
+                        form.setData('ppn_default', e.target.value)
+                    }
                 />
             </Field>
             <Button type="submit" disabled={form.processing}>
@@ -126,40 +147,63 @@ type CompanyDetails = {
     company_bank_account: string;
 };
 
-function CompanyDetailsForm({ companyDetails }: { companyDetails: CompanyDetails }) {
+function CompanyDetailsForm({
+    companyDetails,
+}: {
+    companyDetails: CompanyDetails;
+}) {
     const form = useForm(companyDetails);
 
     return (
         <form
             onSubmit={(event) => {
                 event.preventDefault();
-                form.put("/admin/settings", { preserveScroll: true });
+                form.put('/admin/settings', { preserveScroll: true });
             }}
             className="grid max-w-2xl gap-3 rounded-md border bg-card p-4"
         >
-            <h2 className="text-sm font-semibold">Identitas Perusahaan Pemilik</h2>
+            <h2 className="text-sm font-semibold">
+                Identitas Perusahaan Pemilik
+            </h2>
             <Field label="Nama perusahaan" error={form.errors.company_name}>
                 <Input
                     value={form.data.company_name}
-                    onChange={(event) => form.setData("company_name", event.target.value)}
+                    onChange={(event) =>
+                        form.setData('company_name', event.target.value)
+                    }
                 />
             </Field>
-            <Field label="Alamat perusahaan" error={form.errors.company_address}>
+            <Field
+                label="Alamat perusahaan"
+                error={form.errors.company_address}
+            >
                 <Input
                     value={form.data.company_address}
-                    onChange={(event) => form.setData("company_address", event.target.value)}
+                    onChange={(event) =>
+                        form.setData('company_address', event.target.value)
+                    }
                 />
             </Field>
-            <Field label="Nama bank pembayaran" error={form.errors.company_bank_name}>
+            <Field
+                label="Nama bank pembayaran"
+                error={form.errors.company_bank_name}
+            >
                 <Input
                     value={form.data.company_bank_name}
-                    onChange={(event) => form.setData("company_bank_name", event.target.value)}
+                    onChange={(event) =>
+                        form.setData('company_bank_name', event.target.value)
+                    }
                 />
             </Field>
-            <Field label="Nomor rekening" error={form.errors.company_bank_account}>
+            <Field
+                label="Nomor rekening"
+                error={form.errors.company_bank_account}
+            >
                 <Input
                     value={form.data.company_bank_account}
-                    onChange={(event) => form.setData("company_bank_account", event.target.value)}
+                    onChange={(event) =>
+                        form.setData('company_bank_account', event.target.value)
+                    }
                 />
             </Field>
             <Button type="submit" disabled={form.processing}>
@@ -181,13 +225,19 @@ export default function Users({
     companyDetails: CompanyDetails;
 }) {
     const { auth } = usePage<{ auth: Auth }>().props;
-    const [dialog, setDialog] = useState<{ user: ManagedUser | null } | null>(null);
+    const [dialog, setDialog] = useState<{ user: ManagedUser | null } | null>(
+        null,
+    );
 
     return (
         <PageShell
             title="Pengguna & Pengaturan"
             description="Kelola user, identitas perusahaan, dan PPN default"
-            actions={<Button onClick={() => setDialog({ user: null })}>Tambah User</Button>}
+            actions={
+                <Button onClick={() => setDialog({ user: null })}>
+                    Tambah User
+                </Button>
+            }
         >
             <PpnForm ppnDefault={ppnDefault} />
             <CompanyDetailsForm companyDetails={companyDetails} />
@@ -221,7 +271,7 @@ export default function Users({
                                         onClick={() =>
                                             confirmDelete(
                                                 `/admin/users/${user.id}`,
-                                                "Hapus user ini?",
+                                                'Hapus user ini?',
                                             )
                                         }
                                     >
@@ -235,7 +285,7 @@ export default function Users({
             </DataTable>
             {dialog && (
                 <UserDialog
-                    key={dialog.user?.id ?? "new"}
+                    key={dialog.user?.id ?? 'new'}
                     user={dialog.user}
                     roles={roles}
                     onClose={() => setDialog(null)}
@@ -246,5 +296,5 @@ export default function Users({
 }
 
 Users.layout = {
-    breadcrumbs: [{ title: "Pengguna & Pengaturan", href: "/admin/users" }],
+    breadcrumbs: [{ title: 'Pengguna & Pengaturan', href: '/admin/users' }],
 };

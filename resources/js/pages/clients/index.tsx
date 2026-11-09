@@ -65,9 +65,7 @@ function ClientDialog({
     const error = (key: string): string | undefined =>
         (form.errors as Record<string, string | undefined>)[key];
 
-    const setGood = <
-        Key extends 'jenis_barang' | 'pricing_mode' | 'harga',
-    >(
+    const setGood = <Key extends 'jenis_barang' | 'pricing_mode' | 'harga'>(
         index: number,
         key: Key,
         value: ClientGoodForm[Key],

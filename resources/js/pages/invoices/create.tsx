@@ -1,11 +1,16 @@
-import { router, useForm } from "@inertiajs/react";
-import { useState } from "react";
-import { DataTable, Field, PageShell, Td, Th } from "@/components/page-shell";
-import { NativeSelect } from "@/components/native-select";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { cleanQuery, formatDate, formatNumber, formatRupiah } from "@/lib/format";
-import type { Option } from "@/types/domain";
+import { router, useForm } from '@inertiajs/react';
+import { useState } from 'react';
+import { DataTable, Field, PageShell, Td, Th } from '@/components/page-shell';
+import { NativeSelect } from '@/components/native-select';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import {
+    cleanQuery,
+    formatDate,
+    formatNumber,
+    formatRupiah,
+} from '@/lib/format';
+import type { Option } from '@/types/domain';
 
 type Pending = {
     id: number;
@@ -15,7 +20,7 @@ type Pending = {
     jenis_barang: string;
     rute: string | null;
     qty_barang: number;
-    pricing_mode: "per_qty" | "flat_trip" | null;
+    pricing_mode: 'per_qty' | 'flat_trip' | null;
     harga_satuan: number | null;
     total_harga: number | null;
 };
@@ -42,15 +47,15 @@ export default function InvoiceCreate({
     ppnDefault: number;
 }) {
     const [period, setPeriod] = useState({
-        client_id: filters.client_id ?? "",
-        destination_client_id: filters.destination_client_id ?? "",
-        tanggal_awal: filters.tanggal_awal ?? "",
-        tanggal_akhir: filters.tanggal_akhir ?? "",
+        client_id: filters.client_id ?? '',
+        destination_client_id: filters.destination_client_id ?? '',
+        tanggal_awal: filters.tanggal_awal ?? '',
+        tanggal_akhir: filters.tanggal_akhir ?? '',
     });
 
     const form = useForm<InvoiceForm>({
         ...period,
-        no_invoice: "",
+        no_invoice: '',
         ppn_persen: String(ppnDefault),
         prices: {},
     });
@@ -58,7 +63,7 @@ export default function InvoiceCreate({
 
     const search = (event: React.FormEvent) => {
         event.preventDefault();
-        router.get("/invoices/create", cleanQuery(period), {
+        router.get('/invoices/create', cleanQuery(period), {
             preserveState: true,
         });
     };
@@ -67,15 +72,19 @@ export default function InvoiceCreate({
         (sum, item) =>
             sum +
             (item.total_harga ??
-                Math.round(item.qty_barang * Number(form.data.prices[item.id] || 0))),
+                Math.round(
+                    item.qty_barang * Number(form.data.prices[item.id] || 0),
+                )),
         0,
     );
-    const ppn = Math.round((subtotal * Number(form.data.ppn_persen || 0)) / 100);
+    const ppn = Math.round(
+        (subtotal * Number(form.data.ppn_persen || 0)) / 100,
+    );
 
     const submit = (event: React.FormEvent) => {
         event.preventDefault();
         form.transform((data) => ({ ...data, ...period }));
-        form.post("/invoices");
+        form.post('/invoices');
     };
 
     return (
@@ -95,8 +104,9 @@ export default function InvoiceCreate({
                                 ...period,
                                 client_id: e.target.value,
                                 destination_client_id:
-                                    e.target.value === period.destination_client_id
-                                        ? ""
+                                    e.target.value ===
+                                    period.destination_client_id
+                                        ? ''
                                         : period.destination_client_id,
                             })
                         }
@@ -109,11 +119,17 @@ export default function InvoiceCreate({
                         ))}
                     </NativeSelect>
                 </Field>
-                <Field label="Client tujuan" error={errors.destination_client_id}>
+                <Field
+                    label="Client tujuan"
+                    error={errors.destination_client_id}
+                >
                     <NativeSelect
                         value={period.destination_client_id}
                         onChange={(e) =>
-                            setPeriod({ ...period, destination_client_id: e.target.value })
+                            setPeriod({
+                                ...period,
+                                destination_client_id: e.target.value,
+                            })
                         }
                     >
                         <option value="">Pilih client tujuan</option>
@@ -121,7 +137,9 @@ export default function InvoiceCreate({
                             <option
                                 key={client.id}
                                 value={client.id}
-                                disabled={String(client.id) === period.client_id}
+                                disabled={
+                                    String(client.id) === period.client_id
+                                }
                             >
                                 {client.nama}
                             </option>
@@ -174,13 +192,16 @@ export default function InvoiceCreate({
                     <tbody>
                         {pending.length === 0 && (
                             <tr>
-                                <Td colSpan={8} className="py-8 text-center text-muted-foreground">
+                                <Td
+                                    colSpan={8}
+                                    className="py-8 text-center text-muted-foreground"
+                                >
                                     {period.client_id &&
                                     period.destination_client_id &&
                                     period.tanggal_awal &&
                                     period.tanggal_akhir
-                                        ? "Tidak ada trip pending untuk pasangan client asal dan tujuan pada rentang tanggal ini. Trip yang sudah di-invoice tidak ditampilkan."
-                                        : "Pilih client asal, client tujuan, dan rentang tanggal, lalu klik Tampilkan trip."}
+                                        ? 'Tidak ada trip pending untuk pasangan client asal dan tujuan pada rentang tanggal ini. Trip yang sudah di-invoice tidak ditampilkan.'
+                                        : 'Pilih client asal, client tujuan, dan rentang tanggal, lalu klik Tampilkan trip.'}
                                 </Td>
                             </tr>
                         )}
@@ -188,9 +209,11 @@ export default function InvoiceCreate({
                             (() => {
                                 const legacy = item.total_harga === null;
                                 const price =
-                                    item.harga_satuan ?? Number(form.data.prices[item.id] || 0);
+                                    item.harga_satuan ??
+                                    Number(form.data.prices[item.id] || 0);
                                 const amount =
-                                    item.total_harga ?? Math.round(item.qty_barang * price);
+                                    item.total_harga ??
+                                    Math.round(item.qty_barang * price);
 
                                 return (
                                     <tr key={item.id}>
@@ -198,8 +221,10 @@ export default function InvoiceCreate({
                                         <Td>{item.plat}</Td>
                                         <Td>{item.no_surat_jalan}</Td>
                                         <Td>{item.jenis_barang}</Td>
-                                        <Td>{item.rute ?? "-"}</Td>
-                                        <Td right>{formatNumber(item.qty_barang)}</Td>
+                                        <Td>{item.rute ?? '-'}</Td>
+                                        <Td right>
+                                            {formatNumber(item.qty_barang)}
+                                        </Td>
                                         <Td right>
                                             {legacy ? (
                                                 <>
@@ -207,24 +232,43 @@ export default function InvoiceCreate({
                                                         type="number"
                                                         min="1"
                                                         className="ml-auto w-32 text-right"
-                                                        value={form.data.prices[item.id] ?? ""}
+                                                        value={
+                                                            form.data.prices[
+                                                                item.id
+                                                            ] ?? ''
+                                                        }
                                                         onChange={(event) =>
-                                                            form.setData("prices", {
-                                                                ...form.data.prices,
-                                                                [item.id]: event.target.value,
-                                                            })
+                                                            form.setData(
+                                                                'prices',
+                                                                {
+                                                                    ...form.data
+                                                                        .prices,
+                                                                    [item.id]:
+                                                                        event
+                                                                            .target
+                                                                            .value,
+                                                                },
+                                                            )
                                                         }
                                                     />
-                                                    {errors[`prices.${item.id}`] && (
+                                                    {errors[
+                                                        `prices.${item.id}`
+                                                    ] && (
                                                         <p className="text-xs text-red-600">
-                                                            {errors[`prices.${item.id}`]}
+                                                            {
+                                                                errors[
+                                                                    `prices.${item.id}`
+                                                                ]
+                                                            }
                                                         </p>
                                                     )}
                                                 </>
                                             ) : (
                                                 <span>
                                                     {formatRupiah(price)}
-                                                    {item.pricing_mode === "flat_trip" && " (flat)"}
+                                                    {item.pricing_mode ===
+                                                        'flat_trip' &&
+                                                        ' (flat)'}
                                                 </span>
                                             )}
                                         </Td>
@@ -241,7 +285,9 @@ export default function InvoiceCreate({
                         <Field label="No. Invoice" error={errors.no_invoice}>
                             <Input
                                 value={form.data.no_invoice}
-                                onChange={(e) => form.setData("no_invoice", e.target.value)}
+                                onChange={(e) =>
+                                    form.setData('no_invoice', e.target.value)
+                                }
                             />
                         </Field>
                         <Field label="PPN (%)" error={errors.ppn_persen}>
@@ -251,12 +297,16 @@ export default function InvoiceCreate({
                                 max="100"
                                 step="0.01"
                                 value={form.data.ppn_persen}
-                                onChange={(e) => form.setData("ppn_persen", e.target.value)}
+                                onChange={(e) =>
+                                    form.setData('ppn_persen', e.target.value)
+                                }
                             />
                         </Field>
                         <dl className="grid grid-cols-2 gap-1 text-sm tabular-nums">
                             <dt>Subtotal</dt>
-                            <dd className="text-right">{formatRupiah(subtotal)}</dd>
+                            <dd className="text-right">
+                                {formatRupiah(subtotal)}
+                            </dd>
                             <dt>PPN</dt>
                             <dd className="text-right">{formatRupiah(ppn)}</dd>
                             <dt className="font-semibold">Total</dt>
@@ -276,7 +326,7 @@ export default function InvoiceCreate({
 
 InvoiceCreate.layout = {
     breadcrumbs: [
-        { title: "Invoice", href: "/invoices" },
-        { title: "Buat Invoice", href: "/invoices/create" },
+        { title: 'Invoice', href: '/invoices' },
+        { title: 'Buat Invoice', href: '/invoices/create' },
     ],
 };
