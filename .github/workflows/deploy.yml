@@ -37,7 +37,44 @@ jobs:
           key: ${{ secrets.HOSTINGER_SSH_KEY }}
           port: ${{ secrets.HOSTINGER_PORT || 65002 }}
           script: |
-            cd ${{ secrets.HOSTINGER_PROJECT_PATH }}
+            echo "=== DEBUG: Current Directory ==="
+            pwd
+            echo "=== DEBUG: List Files ==="
+            ls -la
+            echo "=== DEBUG: Check Project Path ==="
+            PROJECT_PATH="${{ secrets.HOSTINGER_PROJECT_PATH }}"
+            if [ -d "$PROJECT_PATH" ]; then
+              echo "Found project path: $PROJECT_PATH"
+              cd "$PROJECT_PATH"
+            else
+              echo "Project path not found, trying common paths..."
+              for path in "/home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ secrets.HOSTINGER_HOST }}/public_html" "/home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ secrets.HOSTINGER_HOST }}/public_html/subdomain" "/home/${{ secrets.HOSTINGER_USERNAME }}/public_html"; do
+                if [ -d "$path" ] && [ -f "$path/composer.json" ]; then
+                  echo "Found project at: $path"
+                  cd "$path"
+                  break
+                fi
+              done
+            fi
+            echo "=== DEBUG: Current Directory After CD ==="
+            pwd
+            echo "=== DEBUG: List Files ==="
+            ls -la
+            echo "=== DEBUG: Check artisan ==="
+            if [ ! -f "artisan" ]; then
+              echo "ERROR: artisan not found in current directory!"
+              exit 1
+            fi
+            echo "=== DEBUG: Check composer.json ==="
+            if [ ! -f "composer.json" ]; then
+              echo "ERROR: composer.json not found!"
+              exit 1
+            fi
+            echo "=== DEBUG: Check npm ==="
+            if ! command -v npm &> /dev/null; then
+              echo "ERROR: npm not found! Please install Node.js on Hostinger."
+              exit 1
+            fi
             php artisan down || true
             git fetch origin main
             git reset --hard origin/main
