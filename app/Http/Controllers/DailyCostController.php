@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\DailyCostRequest;
-
 use App\Models\DailyCost;
 use App\Models\Vehicle;
 use Illuminate\Http\RedirectResponse;
