@@ -37,32 +37,17 @@ jobs:
           key: ${{ secrets.HOSTINGER_SSH_KEY }}
           port: ${{ secrets.HOSTINGER_PORT || 65002 }}
           script: |
-            echo "=== DEBUG: Current Directory ==="
-            pwd
-            echo "=== DEBUG: List Files ==="
-            ls -la
-            echo "=== DEBUG: Check Project Path ==="
             PROJECT_PATH="${{ secrets.HOSTINGER_PROJECT_PATH }}"
-            if [ -d "$PROJECT_PATH" ]; then
-              echo "Found project path: $PROJECT_PATH"
-              cd "$PROJECT_PATH"
-            else
-              echo "Project path not found, trying common paths..."
-              for path in "/home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ secrets.HOSTINGER_HOST }}/public_html" "/home/${{ secrets.HOSTINGER_USERNAME }}/domains/${{ secrets.HOSTINGER_HOST }}/public_html/subdomain" "/home/${{ secrets.HOSTINGER_USERNAME }}/public_html"; do
-                if [ -d "$path" ] && [ -f "$path/composer.json" ]; then
-                  echo "Found project at: $path"
-                  cd "$path"
-                  break
-                fi
-              done
-            fi
-            echo "=== DEBUG: Current Directory After CD ==="
+            echo "=== DEBUG: Using Project Path ==="
+            echo "$PROJECT_PATH"
+            cd "$PROJECT_PATH"
+            echo "=== DEBUG: Current Directory ==="
             pwd
             echo "=== DEBUG: List Files ==="
             ls -la
             echo "=== DEBUG: Check artisan ==="
             if [ ! -f "artisan" ]; then
-              echo "ERROR: artisan not found in current directory!"
+              echo "ERROR: artisan not found!"
               exit 1
             fi
             echo "=== DEBUG: Check composer.json ==="
@@ -72,7 +57,12 @@ jobs:
             fi
             echo "=== DEBUG: Check npm ==="
             if ! command -v npm &> /dev/null; then
-              echo "ERROR: npm not found! Please install Node.js on Hostinger."
+              echo "ERROR: npm not found! Install Node.js via Hostinger hPanel → Node.js"
+              exit 1
+            fi
+            echo "=== DEBUG: Check git ==="
+            if [ ! -d ".git" ]; then
+              echo "ERROR: Not a git repository! Run: git init && git remote add origin <url>"
               exit 1
             fi
             php artisan down || true
