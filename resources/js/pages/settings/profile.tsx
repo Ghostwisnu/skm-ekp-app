@@ -105,8 +105,11 @@ export default function Profile({
 Profile.layout = {
     breadcrumbs: [
         {
-            title: 'Profile settings',
+            title: 'Profile',
             href: edit(),
         },
     ],
 };
+
+export { Profile };
+export { edit, update, destroy };
