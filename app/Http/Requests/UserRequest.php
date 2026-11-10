@@ -19,7 +19,7 @@ class UserRequest extends FormRequest
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user)],
             'role' => ['required', 'string', 'exists:roles,name'],
-            'password' => [$user ? 'nullable' : 'required', 'string', Password::default()],
+            'password' => [$user ? 'nullable' : 'required', 'string', Password::default()->min(8)->mixedCase()->letters()->numbers()],
         ];
     }
 }

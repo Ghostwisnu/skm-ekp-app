@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatDate, formatNumber, formatRupiah } from "@/lib/format";
+import { pdf, excel } from "@/routes/invoices";
 import type { Invoice } from "@/types/domain";
 
 type CompanyDetails = {
@@ -30,10 +31,10 @@ export default function InvoiceShow({
             actions={
                 <>
                     <Button variant="outline" asChild>
-                        <a href={`/invoices/${invoice.id}/pdf`}>Cetak PDF</a>
+                        <a href={pdf({ invoice: invoice.id }).url}>Cetak PDF</a>
                     </Button>
                     <Button variant="outline" asChild>
-                        <a href={`/invoices/${invoice.id}/excel`}>Ekspor Excel</a>
+                        <a href={excel({ invoice: invoice.id }).url}>Ekspor Excel</a>
                     </Button>
                     {isDraft && (
                         <>
