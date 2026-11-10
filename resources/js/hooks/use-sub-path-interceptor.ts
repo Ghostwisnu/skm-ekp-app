@@ -1,5 +1,5 @@
 /**
- * Intercepts all Inertia navigation and form submissions to automatically
+ * Intercepts all Inertia navigation and HTTP requests to automatically
  * prefix them with the deployment subdirectory path (e.g. /ekp).
  *
  * This fixes URL collision when deployed as a subdirectory alongside another
@@ -8,7 +8,7 @@
  * Usage: Call setupSubPathInterceptor() before createInertiaApp().
  */
 
-import { router } from '@inertiajs/react';
+import { router, http } from '@inertiajs/react';
 
 // Deploy subdirectory path — must match the actual deployment path
 const SUBPATH = '/ekp';
@@ -38,12 +38,21 @@ export function setupSubPathInterceptor(): void {
     // Only activate when running under the deployment subdirectory
     if (!window.location.pathname.startsWith(SUBPATH)) return;
 
-    // ── Monkey-patch Inertia router.visit ────────────────────────────────
-    // This intercepts ALL Link clicks, router.get/post/put/delete calls,
-    // AND Form component submissions (since Inertia's Form uses router.visit internally).
+    // ── Intercept ALL Inertia HTTP requests (includes forms, links, router calls) ──
+    // http.onRequest runs before every XHR/Fetch request made by Inertia,
+    // including Form component submissions and router visits.
+    http.onRequest((config: any) => {
+        if (config.url) {
+            config.url = prefixUrl(config.url);
+        }
+        return config;
+    });
+
+    // ── Monkey-patch router.visit for direct navigation calls ───────────
+    // Covers Link clicks, router.get/post/put/delete, and any other
+    // programmatic navigation that bypasses the HTTP request handler.
     const originalVisit = router.visit.bind(router);
     router.visit = function visit(href: any, options: any = {}): void {
-        // Resolve the href to a string URL
         let url: string;
         if (typeof href === 'string') {
             url = href;
@@ -52,7 +61,6 @@ export function setupSubPathInterceptor(): void {
         } else {
             return originalVisit(href, options);
         }
-        // Prefix the URL with subpath
         const prefixedUrl = prefixUrl(url);
         if (prefixedUrl !== url) {
             if (typeof href === 'string') {
@@ -62,7 +70,6 @@ export function setupSubPathInterceptor(): void {
         }
         return originalVisit(href, options);
     };
-    // Preserve the original toString for debugging
     Object.defineProperty(router.visit, 'toString', {
         value: () => originalVisit.toString(),
         writable: false,
@@ -70,8 +77,8 @@ export function setupSubPathInterceptor(): void {
     });
 
     // ── Fix HTML form actions via MutationObserver ────────────────────────
-    // This catches forms added dynamically (including the initial page load)
-    // and rewrites their action attribute to include the subpath prefix.
+    // Catches forms added dynamically (Inertia page transitions) and
+    // rewrites their action attribute to include the subpath prefix.
     const fixFormActions = (container: Element | null = document.body): void => {
         if (!container) return;
         container.querySelectorAll<HTMLFormElement>('form[action]').forEach((form) => {
@@ -85,10 +92,10 @@ export function setupSubPathInterceptor(): void {
         });
     };
 
-    // Run once immediately for existing forms
+    // Run once immediately for any forms already in the DOM
     fixFormActions();
 
-    // Watch for new forms added to the DOM (Inertia page transitions add forms)
+    // Watch for new forms added by Inertia page transitions
     const observer = new MutationObserver((mutations) => {
         for (const mutation of mutations) {
             for (const node of mutation.addedNodes) {
