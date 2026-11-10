@@ -110,6 +110,3 @@ Profile.layout = {
         },
     ],
 };
-
-export { Profile };
-export { edit, update, destroy };
