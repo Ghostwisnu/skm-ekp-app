@@ -73,8 +73,6 @@ jobs:
             
             # Fix SESSION_PATH in .env — strip any double-prefix bug from previous sed commands
             sed -i 's|SESSION_PATH=/.*|SESSION_PATH=/ekp|' .env
-            # Set APP_SUBPATH for Fortify redirect paths
-            sed -i 's|APP_SUBPATH=.*|APP_SUBPATH=/ekp|' .env
             # Set correct APP_URL for subdirectory deployment
             sed -i 's|APP_URL=.*|APP_URL=https://inventoryai.id/ekp|' .env
             

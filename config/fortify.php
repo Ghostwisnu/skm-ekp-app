@@ -75,10 +75,12 @@ return [
 
     'home' => '/dashboard',
     'redirects' => [
-        'login' => config('app.url') . env('APP_SUBPATH', ''),
-        'register' => config('app.url') . env('APP_SUBPATH', '') . '/register',
-        'password-reset' => config('app.url') . env('APP_SUBPATH', '') . '/forgot-password',
-        'logout' => config('app.url') . env('APP_SUBPATH', ''),
+        // Use relative paths so they resolve correctly regardless of APP_URL
+        // The frontend interceptor handles subdirectory prefixing automatically
+        'login' => '/login',
+        'register' => '/register',
+        'password-reset' => '/forgot-password',
+        'logout' => '/logout',
     ],
 
     /*
