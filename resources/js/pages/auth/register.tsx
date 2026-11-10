@@ -31,7 +31,7 @@ export default function Register({ passwordRules }: Props) {
 
             <Form
                 method="POST"
-                action="register"
+                action="/register"
                 className="flex flex-col gap-6"
             >
                 {({ processing, errors }) => (

@@ -5,6 +5,10 @@ import { initializeTheme } from '@/hooks/use-appearance';
 import AppLayout from '@/layouts/app-layout';
 import AuthLayout from '@/layouts/auth-layout';
 import SettingsLayout from '@/layouts/settings/layout';
+import { setupSubPathInterceptor } from '@/hooks/use-sub-path-interceptor';
+
+// Set up subdirectory interception for apps deployed under a path like /ekp/
+setupSubPathInterceptor();
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 

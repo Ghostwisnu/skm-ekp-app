@@ -3,10 +3,9 @@
     "private": true,
     "type": "module",
     "scripts": {
-        "build": "vp build && node scripts/make-routes-relative.mjs",
-        "build:ssr": "vp build && vp build --ssr && node scripts/make-routes-relative.mjs",
-        "dev": "vp dev & npm run dev:routes-fix",
-        "dev:routes-fix": "node scripts/make-routes-relative.mjs",
+        "build": "vp build",
+        "build:ssr": "vp build && vp build --ssr",
+        "dev": "vp dev",
         "check": "vp check",
         "check:fix": "vp check --fix",
         "types:check": "tsc --noEmit"

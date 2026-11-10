@@ -74,6 +74,12 @@ return [
     */
 
     'home' => '/dashboard',
+    'redirects' => [
+        'login' => config('app.url') . env('APP_SUBPATH', ''),
+        'register' => config('app.url') . env('APP_SUBPATH', '') . '/register',
+        'password-reset' => config('app.url') . env('APP_SUBPATH', '') . '/forgot-password',
+        'logout' => config('app.url') . env('APP_SUBPATH', ''),
+    ],
 
     /*
     |--------------------------------------------------------------------------
