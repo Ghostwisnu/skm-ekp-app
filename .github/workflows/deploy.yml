@@ -70,6 +70,10 @@ jobs:
             cd ${{ secrets.HOSTINGER_PROJECT_PATH }}
             echo "=== Starting Deployment ==="
             php artisan down || true
+            
+            # Fix SESSION_PATH in .env — strip any double-prefix bug from previous sed commands
+            sed -i 's|SESSION_PATH=/.*|SESSION_PATH=/ekp|' .env
+            
             composer install --no-dev --no-interaction --ignore-platform-reqs
             php artisan migrate --force
             php artisan db:seed --class=DatabaseSeeder || true
