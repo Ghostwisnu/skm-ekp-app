@@ -42,6 +42,7 @@ class HandleInertiaRequests extends Middleware
                 'user' => $request->user() ? $request->user()->load('roles') : null,
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
+            'basePath' => parse_url(config('app.url'), PHP_URL_PATH) ?: '',
         ];
     }
 }

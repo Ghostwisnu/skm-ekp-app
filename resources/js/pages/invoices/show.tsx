@@ -1,11 +1,10 @@
-import { router } from "@inertiajs/react";
+import { router, usePage } from "@inertiajs/react";
 import { confirmDelete } from "@/components/confirm-delete";
 import { DataTable, PageShell, Td, Th } from "@/components/page-shell";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatDate, formatNumber, formatRupiah } from "@/lib/format";
-import { pdf, excel } from "@/routes/invoices";
 import type { Invoice } from "@/types/domain";
 
 type CompanyDetails = {
@@ -23,6 +22,7 @@ export default function InvoiceShow({
     company: CompanyDetails;
 }) {
     const isDraft = invoice.status === "draft";
+    const basePath = (usePage<{ props: { basePath: string } }>().props as any).basePath ?? '';
 
     return (
         <PageShell
@@ -31,10 +31,10 @@ export default function InvoiceShow({
             actions={
                 <>
                     <Button variant="outline" asChild>
-                        <a href={pdf({ invoice: invoice.id }).url}>Cetak PDF</a>
+                        <a href={`${basePath}/invoices/${invoice.id}/pdf`}>Cetak PDF</a>
                     </Button>
                     <Button variant="outline" asChild>
-                        <a href={excel({ invoice: invoice.id }).url}>Ekspor Excel</a>
+                        <a href={`${basePath}/invoices/${invoice.id}/excel`}>Ekspor Excel</a>
                     </Button>
                     {isDraft && (
                         <>

@@ -8,6 +8,7 @@ import {
 } from '@/components/page-shell';
 import { Button } from '@/components/ui/button';
 import { cleanQuery, formatNumber, formatRupiah } from '@/lib/format';
+import { usePage } from '@inertiajs/react';
 import type { Option, VehicleReportRow } from '@/types/domain';
 
 export default function VehicleReport({
@@ -21,6 +22,7 @@ export default function VehicleReport({
 }) {
     const query = new URLSearchParams(cleanQuery(filters)).toString();
     const suffix = query ? `?${query}` : '';
+    const basePath = (usePage<{ props: { basePath: string } }>().props as any).basePath ?? '';
 
     return (
         <PageShell
@@ -29,10 +31,10 @@ export default function VehicleReport({
             actions={
                 <>
                     <Button variant="outline" asChild>
-                        <a href={`/reports/vehicles/pdf${suffix}`}>Cetak PDF</a>
+                        <a href={`${basePath}/reports/vehicles/pdf${suffix}`}>Cetak PDF</a>
                     </Button>
                     <Button variant="outline" asChild>
-                        <a href={`/reports/vehicles/excel${suffix}`}>
+                        <a href={`${basePath}/reports/vehicles/excel${suffix}`}>
                             Ekspor Excel
                         </a>
                     </Button>
