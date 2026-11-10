@@ -79,7 +79,7 @@ export default function Dashboard({
                     ))}
                 </tbody>
             </DataTable>
-            <Link href="/trips" className="text-sm text-primary underline">
+            <Link href="trips" className="text-sm text-primary underline">
                 Lihat semua trip
             </Link>
         </PageShell>

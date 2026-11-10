@@ -28,7 +28,7 @@ export default function InvoiceIndex({
             description="Invoice per pasangan client asal dan tujuan"
             actions={
                 <Button asChild>
-                    <Link href="/invoices/create">Buat Invoice</Link>
+                    <Link href="invoices/create">Buat Invoice</Link>
                 </Button>
             }
         >
