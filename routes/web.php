@@ -23,7 +23,7 @@ Route::middleware('auth')->group(function () {
 
     Route::middleware('role:admin,operator')->group(function () {
         Route::resource('trips', TripController::class)->except('show');
-        Route::resource('daily-costs', DailyCostController::class)->only(['index', 'store', 'update'])
+        Route::resource('daily-costs', DailyCostController::class)->only(['index', 'store', 'update', 'destroy'])
             ->parameters(['daily-costs' => 'dailyCost']);
         Route::resource('clients', ClientController::class)->only(['store', 'update', 'destroy']);
         Route::resource('vehicles', VehicleController::class)->only(['store', 'update', 'destroy']);

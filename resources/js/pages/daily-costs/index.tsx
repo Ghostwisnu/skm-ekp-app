@@ -1,5 +1,6 @@
 import { useForm } from '@inertiajs/react';
 import { useState } from 'react';
+import { confirmDelete } from '@/components/confirm-delete';
 import { FilterBar } from '@/components/filter-bar';
 import {
     DataTable,
@@ -190,6 +191,19 @@ export default function DailyCostIndex({
                                     onClick={() => setDialog({ cost })}
                                 >
                                     Ubah
+                                </Button>
+                                <Button
+                                    variant="destructive"
+                                    size="sm"
+                                    className="ml-2"
+                                    onClick={() =>
+                                        confirmDelete(
+                                            `/daily-costs/${cost.id}`,
+                                            'Hapus biaya harian ini?',
+                                        )
+                                    }
+                                >
+                                    Hapus
                                 </Button>
                             </Td>
                         </tr>

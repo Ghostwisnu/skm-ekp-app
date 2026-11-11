@@ -54,4 +54,13 @@ class DailyCostController extends Controller
 
         return back();
     }
+
+    public function destroy(DailyCost $dailyCost): RedirectResponse
+    {
+        $dailyCost->delete();
+
+        Inertia::flash('toast', ['type' => 'success', 'message' => 'Biaya harian dihapus.']);
+
+        return back();
+    }
 }
