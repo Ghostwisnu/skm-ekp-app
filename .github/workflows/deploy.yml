@@ -76,7 +76,7 @@ jobs:
           host: ${{ secrets.HOSTINGER_HOST }}
           port: ${{ secrets.HOSTINGER_PORT }}
           username: ${{ secrets.HOSTINGER_USERNAME }}
-          key: ${{ secrets.HOSTINGER_SSH_KEY }}
+          password: ${{ secrets.HOSTINGER_PASSWORD }}
           script: |
             cd ${{ secrets.HOSTINGER_PROJECT_PATH }}
             git fetch origin main
