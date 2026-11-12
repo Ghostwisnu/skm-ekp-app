@@ -91,6 +91,27 @@ jobs:
           password: ${{ secrets.HOSTINGER_PASSWORD }}
           envs: REPO_ACCESS_TOKEN
           script: |
-            cd ${{ secrets.HOSTINGER_PROJECT_PATH }}
-            export REPO_ACCESS_TOKEN=${{ secrets.REPO_ACCESS_TOKEN }}
-            bash deploy.sh
+            set -e
+            cd /home/u234139505/domains/inventoryai.id/skm-ekp-app
+            echo "PWD: $(pwd)"
+            echo "composer.json: $(test -f composer.json && echo YES || echo NO)"
+            ssh-keyscan -t ed25519,ecdsa,rsa github.com >> ~/.ssh/known_hosts 2>/dev/null || true
+            git remote set-url origin "https://${REPO_ACCESS_TOKEN}@github.com/Ghostwisnu/skm-ekp-app.git"
+            git fetch origin main
+            git reset --hard origin/main
+            composer install --no-dev --optimize-autoloader --no-interaction --no-scripts
+            rm -f bootstrap/cache/config.php bootstrap/cache/services.php bootstrap/cache/packages.php
+            php artisan package:discover --ansi
+            npm ci
+            npm run build
+            php artisan config:clear
+            php artisan route:clear
+            php artisan migrate --force
+            php artisan db:seed --force || true
+            php artisan config:cache
+            php artisan route:cache
+            php artisan view:cache
+            php artisan optimize
+            rsync -av --delete public/ /home/u234139505/domains/inventoryai.id/public_html/ekp/
+            php artisan storage:link || true
+            echo "Deploy Complete"
