@@ -100,14 +100,7 @@ class NavigationMenu extends Model
                 'icon' => $menu->icon,
                 'sortOrder' => $menu->sort_order,
                 'isActive' => $menu->is_active,
-                'children' => $menu->children->map(fn (self $child) => [
-                    'id' => $child->id,
-                    'name' => $child->name,
-                    'route' => $child->route,
-                    'icon' => $child->icon,
-                    'sortOrder' => $child->sort_order,
-                    'isActive' => $child->is_active,
-                ]),
-            ]);
+                'children' => collect(),
+            ]),
     }
 }
