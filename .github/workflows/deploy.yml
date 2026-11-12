@@ -77,17 +77,6 @@ jobs:
           strip_components: 2
           overwrite: true
 
-      - name: Upload .env to server
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ secrets.HOSTINGER_HOST }}
-          port: ${{ secrets.HOSTINGER_PORT }}
-          username: ${{ secrets.HOSTINGER_USERNAME }}
-          password: ${{ secrets.HOSTINGER_PASSWORD }}
-          source: ".env"
-          target: "/home/u234139505/domains/inventoryai.id/skm-ekp-app/.env"
-          overwrite: true
-
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1.0.0
         with:
@@ -115,6 +104,25 @@ jobs:
               git clone "https://${REPO_ACCESS_TOKEN}@github.com/Ghostwisnu/skm-ekp-app.git" "$PROJECT"
               if [ -f /tmp/skm-ekp.env ]; then
                 cp /tmp/skm-ekp.env "$PROJECT/.env"
+              else
+                # Create fresh .env from secrets
+                cat > "$PROJECT/.env" <<ENVEOF
+APP_NAME=Laravel
+APP_ENV=production
+APP_KEY=${{ secrets.APP_KEY }}
+APP_DEBUG=false
+APP_URL=https://inventoryai.id/ekp
+DB_CONNECTION=${{ secrets.DB_CONNECTION }}
+DB_HOST=${{ secrets.DB_HOST }}
+DB_PORT=${{ secrets.DB_PORT }}
+DB_DATABASE=${{ secrets.DB_DATABASE }}
+DB_USERNAME=${{ secrets.DB_USERNAME }}
+DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+SESSION_DRIVER=database
+SESSION_PATH=/ekp
+VITE_APP_NAME=Laravel
+VITE_BASE_URL=/ekp
+ENVEOF
               fi
             fi
 
@@ -131,9 +139,9 @@ jobs:
 
             echo "=== Checking .env ==="
             ls -la .env
-            grep "APP_KEY" .env
-            grep "DB_CONNECTION" .env
-            grep "DB_HOST" .env
+            grep "APP_KEY" .env || echo "WARNING: APP_KEY not found"
+            grep "DB_CONNECTION" .env || echo "WARNING: DB_CONNECTION not found"
+            grep "DB_HOST" .env || echo "WARNING: DB_HOST not found"
 
             echo "=== Database ==="
             php artisan config:clear
