@@ -96,6 +96,10 @@ jobs:
             VITE_BASE_URL=/ekp
             ENVEOF
 
+            echo "=== Verify .env ==="
+            grep -q "APP_KEY" .env && echo "APP_KEY present" || echo "WARNING: APP_KEY missing"
+            grep -q "DB_DATABASE" .env && echo "DB_DATABASE present" || echo "WARNING: DB_DATABASE missing"
+
             echo "=== Discover packages ==="
             php artisan package:discover --ansi
 
@@ -122,9 +126,22 @@ jobs:
             rm -rf "$PUBLIC"
             mkdir -p "$PUBLIC"
             cp -a public/. "$PUBLIC"/
+
+            echo "=== Fix permissions ==="
+            chmod -R 755 storage bootstrap/cache
+            chown -R $USER:$USER storage bootstrap/cache 2>/dev/null || true
+
+            echo "=== Storage link ==="
+            rm -f public/storage
             php artisan storage:link 2>/dev/null || true
+
+            echo "=== Test DB connection ==="
+            php artisan tinker --execute='echo "DB connected: " . (DB::connection()->getPdo() ? "yes" : "no");' || echo "DB test skipped"
 
             echo "=== Health check ==="
             php artisan --version
+
+            echo "=== Laravel log (last 30 lines) ==="
+            tail -n 30 storage/logs/laravel.log 2>/dev/null || echo "No log file found"
 
             echo "✅ Deploy Success"
