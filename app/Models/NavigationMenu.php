@@ -29,40 +29,28 @@ class NavigationMenu extends Model
         'is_active' => 'boolean',
     ];
 
-    /**
-     * @return BelongsTo<NavigationMenu, $this>
-     */
     public function parent(): BelongsTo
     {
         return $this->belongsTo(NavigationMenu::class, 'parent_id');
     }
 
-    /**
-     * @return HasMany<NavigationMenu, $this>
-     */
     public function children(): HasMany
     {
         return $this->hasMany(NavigationMenu::class, 'parent_id');
     }
 
-    /**
-     * @return BelongsToMany<Role>
-     */
     public function roles(): BelongsToMany
     {
         return $this->belongsToMany(Role::class, 'role_navigation_menu');
     }
 
-    /**
-     * Check if menu is accessible by the given role.
-     */
     public function canAccess(string $role): bool
     {
         if ($this->roles()->where('roles.name', $role)->exists()) {
             return true;
         }
 
-        // Parent menus without specific role restriction are visible to all allowed roles
+        // Parent menus without route → visible if any child is accessible
         if ($this->route === null && $this->children()->whereRelation('roles', 'roles.name', $role)->exists()) {
             return true;
         }
@@ -71,37 +59,30 @@ class NavigationMenu extends Model
     }
 
     /**
-     * Get all accessible menu items for a user, built as a flat array with hierarchy.
-     *
-     * @return \Illuminate\Support\Collection<int, array{id: int, name: string, route: ?string, icon: ?string, sortOrder: int, isActive: bool, children: \Illuminate\Support\Collection}>
+     * Get all accessible menu items for a user as a flat array (no nesting).
      */
-    public static function accessibleMenus(\App\Models\User $user): \Illuminate\Support\Collection
+    public static function accessibleMenus(User $user): \Illuminate\Support\Collection
     {
         $role = $user->getRoleNames()->first();
-        if (! $role) {
+        if (!$role) {
             return collect();
         }
 
         return self::query()
             ->where('is_active', true)
-            ->with(['children' => function ($q) use ($role) {
-                $q->where('is_active', true)
-                    ->orderBy('sort_order')
-                    ->whereHas('roles', fn ($qr) => $qr->where('name', $role));
-            }, 'roles'])
+            ->with(['roles'])
             ->whereNull('parent_id')
             ->orderBy('sort_order')
             ->get()
-            ->filter(fn (self $menu) => $menu->canAccess($role))
-            ->map(fn (self $menu) => [
-                'id' => $menu->id,
-                'name' => $menu->name,
-                'route' => $menu->route,
-                'icon' => $menu->icon,
-                'sortOrder' => $menu->sort_order,
-                'isActive' => $menu->is_active,
-                'children' => collect(),
-            ]),
-        );
+            ->filter(fn(self $menu) => $menu->canAccess($role))
+            ->map(fn(self $menu) => [
+                'id'          => $menu->id,
+                'name'        => $menu->name,
+                'route'       => $menu->route,
+                'icon'        => $menu->icon,
+                'sortOrder'   => $menu->sort_order,
+                'isActive'    => $menu->is_active,
+                'children'    => collect(),
+            ]);
     }
 }
