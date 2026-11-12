@@ -13,7 +13,7 @@ class DatabaseSeeder extends BaseDatabaseSeeder
      */
     public function run(): void
     {
-        Model::preventLazyLoadinging(false);
+        Model::preventLazyLoading(false);
 
         $this->call([
             RoleSeeder::class,
