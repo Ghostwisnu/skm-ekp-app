@@ -94,11 +94,20 @@ jobs:
             set -e
             cd /home/u234139505/domains/inventoryai.id/skm-ekp-app
             echo "PWD: $(pwd)"
-            echo "composer.json: $(test -f composer.json && echo YES || echo NO)"
+            echo "=== Files in current dir ==="
+            ls -la
+            echo "=== composer.json? ==="
+            test -f composer.json && echo "YES" || echo "NO"
+            echo "=== .git? ==="
+            test -d .git && echo "YES" || echo "NO"
             ssh-keyscan -t ed25519,ecdsa,rsa github.com >> ~/.ssh/known_hosts 2>/dev/null || true
             git remote set-url origin "https://${REPO_ACCESS_TOKEN}@github.com/Ghostwisnu/skm-ekp-app.git"
             git fetch origin main
             git reset --hard origin/main
+            echo "=== Files after reset ==="
+            ls -la
+            echo "=== composer.json after reset? ==="
+            test -f composer.json && echo "YES" || echo "NO"
             composer install --no-dev --optimize-autoloader --no-interaction --no-scripts
             rm -f bootstrap/cache/config.php bootstrap/cache/services.php bootstrap/cache/packages.php
             php artisan package:discover --ansi
