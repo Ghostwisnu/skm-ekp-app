@@ -45,26 +45,26 @@ jobs:
             set -e
             PROJECT=/home/u234139505/domains/inventoryai.id/skm-ekp-app
             PUBLIC=/home/u234139505/domains/inventoryai.id/public_html/ekp
-            
+
             echo "=== Project state ==="
             ls -la "$PROJECT" || echo "Project folder not found"
-            
+
             if [ ! -f "$PROJECT/composer.json" ]; then
               echo "=== Cloning repository ==="
               cd /
               rm -rf "$PROJECT"
               git clone "https://${REPO_ACCESS_TOKEN}@github.com/Ghostwisnu/skm-ekp-app.git" "$PROJECT"
             fi
-            
+
             echo "=== Updating code ==="
             cd "$PROJECT"
             git remote set-url origin "https://${REPO_ACCESS_TOKEN}@github.com/Ghostwisnu/skm-ekp-app.git"
             git fetch origin main
             git reset --hard origin/main
-            
+
             echo "=== Composer install ==="
             composer install --no-dev --optimize-autoloader --no-interaction
-            
+
             echo "=== Create .env ==="
             cat > .env << ENVEOF
             APP_NAME=Laravel
@@ -83,31 +83,33 @@ jobs:
             VITE_APP_NAME=Laravel
             VITE_BASE_URL=/ekp
             ENVEOF
-            sed -i 's/^[[:space:]]*//' .env
 
             echo "=== Clear caches ==="
             php artisan config:clear
             php artisan route:clear
-            
+
             echo "=== Migrate ==="
-            php artisan migrate --force || true
-            
+            php artisan migrate --force
+
             echo "=== Seed ==="
             php artisan db:seed --force || true
-            
+
             echo "=== Optimize ==="
             php artisan config:cache
             php artisan route:cache
             php artisan view:cache
             php artisan optimize
-            
+
+            echo "=== Restart queue workers ==="
+            php artisan queue:restart || true
+
             echo "=== Sync public ==="
             rm -rf "$PUBLIC"
             mkdir -p "$PUBLIC"
             cp -a public/. "$PUBLIC"/
             php artisan storage:link || true
-            
+
             echo "=== Health check ==="
-            php artisan about || true
-            
+            php artisan about
+
             echo "✅ Deploy Success"
