@@ -115,9 +115,17 @@ export default function NavigationMenus({
 
     return (
         <div className="space-y-6">
-            <div>
-                <h1 className="text-2xl font-bold tracking-tight">Manajemen Menu & Akses Role</h1>
-                <p className="text-sm text-muted-foreground">Atur tampilan sidebar dan hak akses per role.</p>
+            <div className="flex items-center justify-between">
+                <div>
+                    <h1 className="text-2xl font-bold tracking-tight">Manajemen Menu & Akses Role</h1>
+                    <p className="text-sm text-muted-foreground">Atur tampilan sidebar dan hak akses per role.</p>
+                </div>
+                {allMenus.length === 0 && (
+                    <form method="POST" action={`${basePath}/admin/navigation-menus/seed-defaults`}>
+                        <input type="hidden" name="_token" value={(document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content ?? ''} />
+                        <Button type="submit" variant="outline">🌱 Seed Menu Default</Button>
+                    </form>
+                )}
             </div>
 
             <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'menus' | 'roles')} className="space-y-4">
@@ -129,10 +137,6 @@ export default function NavigationMenus({
                 {/* ===== TAB: MENU SIDEBAR ===== */}
                 <TabsContent value="menus" className="space-y-4">
                     <Button onClick={() => openCreate()}>+ Tambah Menu Utama</Button>
-
-                    {allMenus.length === 0 && (
-                        <p className="text-sm text-muted-foreground">Belum ada menu. Klik tombol di atas untuk menambah.</p>
-                    )}
 
                     {/* Edit/Create Modal */}
                     {editingMenu && (

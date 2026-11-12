@@ -51,6 +51,7 @@ Route::middleware('auth')->group(function () {
         Route::post('navigation-menus', [NavigationMenuController::class, 'store'])->name('navigation.menus.store');
         Route::put('navigation-menus/{id}', [NavigationMenuController::class, 'update'])->name('navigation.menus.update');
         Route::delete('navigation-menus/{id}', [NavigationMenuController::class, 'destroy'])->name('navigation.menus.destroy');
+        Route::post('navigation-menus/seed-defaults', [NavigationMenuController::class, 'seedDefaults'])->name('navigation.menus.seed-defaults');
     });
 });
 
