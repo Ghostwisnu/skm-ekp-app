@@ -89,43 +89,8 @@ jobs:
           port: ${{ secrets.HOSTINGER_PORT }}
           username: ${{ secrets.HOSTINGER_USERNAME }}
           password: ${{ secrets.HOSTINGER_PASSWORD }}
+          envs: REPO_ACCESS_TOKEN
           script: |
-            set -e
-            PROJECT_PATH="${{ secrets.HOSTINGER_PROJECT_PATH }}"
-            PUBLIC_PATH="/home/u234139505/domains/inventoryai.id/public_html/ekp"
-            echo "=== Current directory ==="
-            pwd
-            echo "=== Navigating to project ==="
-            cd "$PROJECT_PATH" || { echo "FAILED: Cannot cd to $PROJECT_PATH"; exit 1; }
-            echo "=== Files in project ==="
-            ls -la | head -20
-            echo "=== composer.json exists? ==="
-            test -f composer.json && echo "YES" || echo "NO"
-            echo "=== Adding GitHub to known hosts ==="
-            ssh-keyscan -t ed25519,ecdsa,rsa github.com >> ~/.ssh/known_hosts
-            echo "=== Pulling latest code ==="
-            git remote set-url origin https://${{ secrets.REPO_ACCESS_TOKEN }}@github.com/Ghostwisnu/skm-ekp-app.git
-            git fetch origin main
-            git reset --hard origin/main
-            echo "=== Files after reset ==="
-            ls -la | head -20
-            echo "=== Installing Composer ==="
-            composer install --no-dev --optimize-autoloader --no-interaction --no-scripts
-            rm -f bootstrap/cache/config.php bootstrap/cache/services.php bootstrap/cache/packages.php
-            php artisan package:discover --ansi
-            echo "=== Clearing caches ==="
-            php artisan config:clear
-            php artisan route:clear
-            echo "=== Running migrations ==="
-            php artisan migrate --force
-            echo "=== Seeding data ==="
-            php artisan db:seed --force || true
-            echo "=== Optimizing ==="
-            php artisan config:cache
-            php artisan route:cache
-            php artisan view:cache
-            php artisan optimize
-            echo "=== Sync public folder ==="
-            rsync -av --delete public/ "$PUBLIC_PATH/"
-            php artisan storage:link || true
-            echo "=== Deploy Complete ==="
+            cd ${{ secrets.HOSTINGER_PROJECT_PATH }}
+            export REPO_ACCESS_TOKEN=${{ secrets.REPO_ACCESS_TOKEN }}
+            bash deploy.sh
