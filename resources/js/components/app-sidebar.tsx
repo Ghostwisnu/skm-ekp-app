@@ -21,8 +21,7 @@ import {
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { dashboard } from '@/routes';
-import { getUserRole } from '@/types/auth';
-import type { Auth, NavItem } from '@/types';
+import type { NavItem } from '@/types';
 
 const ICON_MAP: Record<string, React.ElementType> = {
     LayoutGrid,
@@ -53,13 +52,35 @@ const ICON_MAP: Record<string, React.ElementType> = {
     AlertCircle: LayoutGrid,
 };
 
-function iconByName(name: string | null): React.ElementType {
-    return name ? ICON_MAP[name] || LayoutGrid : LayoutGrid;
+function iconByName(name: string | null): React.ElementType | null {
+    return name ? (ICON_MAP[name] || LayoutGrid) : null;
+}
+
+type RawMenuItem = {
+    id: number;
+    name: string;
+    route: string | null;
+    icon: string | null;
+    sortOrder: number;
+    isActive: boolean;
+    children?: RawMenuItem[];
+};
+
+function toNavItem(raw: RawMenuItem): NavItem {
+    return {
+        title: raw.name,
+        href: raw.route ?? '#',
+        icon: iconByName(raw.icon),
+        isActive: false,
+        children: raw.children?.map(toNavItem),
+    };
 }
 
 export function AppSidebar() {
-    const { auth, navigationMenus } = usePage<{ auth: Auth; navigationMenus: NavItem[] }>().props;
-    const role = getUserRole(auth.user);
+    const { auth } = usePage<{ auth: any }>().props;
+    const rawMenus = (usePage<{ props: { navigationMenus?: RawMenuItem[] } }>().props as any).navigationMenus ?? [];
+
+    const navItems: NavItem[] = rawMenus.map(toNavItem);
 
     return (
         <Sidebar collapsible="icon" variant="inset">
@@ -76,7 +97,7 @@ export function AppSidebar() {
             </SidebarHeader>
 
             <SidebarContent>
-                <NavMain items={navigationMenus} />
+                <NavMain items={navItems} />
             </SidebarContent>
 
             <SidebarFooter>

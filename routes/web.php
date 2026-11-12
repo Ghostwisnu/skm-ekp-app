@@ -6,6 +6,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\NavigationMenuController;
 use App\Http\Controllers\ReportController;
+use App\Http\Controllers\RoleController;
 use App\Http\Controllers\SettingController;
 use App\Http\Controllers\TripController;
 use App\Http\Controllers\UserController;
@@ -52,6 +53,9 @@ Route::middleware('auth')->group(function () {
         Route::put('navigation-menus/{id}', [NavigationMenuController::class, 'update'])->name('navigation.menus.update');
         Route::delete('navigation-menus/{id}', [NavigationMenuController::class, 'destroy'])->name('navigation.menus.destroy');
         Route::post('navigation-menus/seed-defaults', [NavigationMenuController::class, 'seedDefaults'])->name('navigation.menus.seed-defaults');
+
+        // Role Management
+        Route::resource('roles', RoleController::class)->only(['index', 'store', 'update', 'destroy']);
     });
 });
 

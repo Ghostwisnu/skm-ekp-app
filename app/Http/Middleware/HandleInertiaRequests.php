@@ -47,6 +47,12 @@ class HandleInertiaRequests extends Middleware
             'navigationMenus' => auth()->check()
                 ? NavigationMenu::accessibleMenus(auth()->user())
                 : [],
+            'roles' => \Spatie\Permission\Models\Role::with('permissions')->get(['id', 'name'])->map(fn ($r) => [
+                'id' => $r->id,
+                'name' => $r->name,
+                'permissions' => $r->permissions->pluck('name')->toArray(),
+            ])->values(),
+            'permissions' => \Spatie\Permission\Models\Permission::all()->pluck('name')->toArray(),
         ];
     }
 }
