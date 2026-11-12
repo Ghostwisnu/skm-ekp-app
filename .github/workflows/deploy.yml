@@ -92,15 +92,14 @@ jobs:
           script: |
             set -e
             cd ${{ secrets.HOSTINGER_PROJECT_PATH }}
+            echo "=== Current directory ==="
+            pwd
             echo "=== Adding GitHub to known hosts ==="
             ssh-keyscan -t ed25519,ecdsa,rsa github.com >> ~/.ssh/known_hosts
             echo "=== Pulling latest code ==="
             git remote set-url origin https://${{ secrets.REPO_ACCESS_TOKEN }}@github.com/Ghostwisnu/skm-ekp-app.git
             git fetch origin main
-            git clean -fd
             git reset --hard origin/main
-            echo "=== Verify migration file ==="
-            head -15 database/migrations/2026_11_13_000000_create_daily_cost_extras_table.php
             echo "=== Installing Composer ==="
             composer install --no-dev --optimize-autoloader --no-interaction --no-scripts
             rm -f bootstrap/cache/config.php bootstrap/cache/services.php bootstrap/cache/packages.php
