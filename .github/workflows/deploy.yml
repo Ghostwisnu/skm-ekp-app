@@ -1,89 +1,95 @@
-name: Auto Deploy to Hostinger
+name: Deploy to Production
 
 on:
   push:
-    branches: [main, master]
+    branches: [main]
+  workflow_dispatch:
 
 jobs:
   deploy:
-    name: Build & Deploy to Hostinger
     runs-on: ubuntu-latest
+    environment: production
 
     steps:
-      - name: 📥 Checkout Repository
-        uses: actions/checkout@v7
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-      - name: 🐘 Setup PHP 8.5
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.5'
-          extensions: mbstring, xml, ctype, iconv, mysql, pdo, dom, curl, gd, zip, fileinfo, bcmath
+          extensions: mbstring, xml, json, mysql, curl, gd, zip, dom, simplexml
 
-      - name: 📦 Install Composer Dependencies
-        run: composer install --no-dev --no-interaction --ignore-platform-reqs
-
-      - name: 🟢 Setup Node.js
-        uses: actions/setup-node@v7
+      - name: Cache Composer packages
+        uses: actions/cache@v4
         with:
-          node-version: '20'
-          cache: 'npm'
+          path: vendor
+          key: ${{ runner.os }}-composer-${{ hashFiles('composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-composer-
 
-      - name: 🎨 Build Frontend Assets
-        run: |
-          npm ci
-          VITE_BASE_URL=/ekp/build/ npm run build
+      - name: Install Composer dependencies
+        run: composer install --no-dev --optimize-autoloader --no-interaction
 
-      - name: 🔑 Install SSH Key
-        uses: webfactory/ssh-agent@v0.10.0
+      - name: Cache NPM packages
+        uses: actions/cache@v4
         with:
-          ssh-private-key: ${{ secrets.HOSTINGER_SSH_KEY }}
+          path: node_modules
+          key: ${{ runner.os }}-npm-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-npm-
 
-      - name: 📤 Upload Files to Hostinger via Rsync
+      - name: Install NPM packages
+        run: npm ci
+
+      - name: Build frontend
+        run: npm run build
+
+      - name: Clear config & route cache
         run: |
-          mkdir -p ~/.ssh
-          ssh-keyscan -p ${{ secrets.HOSTINGER_PORT || 65002 }} -H ${{ secrets.HOSTINGER_HOST }} >> ~/.ssh/known_hosts 2>/dev/null || true
-          
-          rsync -avz --delete -e "ssh -p ${{ secrets.HOSTINGER_PORT || 65002 }} -o StrictHostKeyChecking=no" \
-            --exclude='.env' \
-            --exclude='.git' \
-            --exclude='.github' \
-            --exclude='node_modules' \
-            --exclude='storage/framework/cache/*' \
-            --exclude='storage/framework/sessions/*' \
-            --exclude='storage/framework/views/*' \
-            --exclude='storage/logs/*' \
-            --exclude='storage/*.key' \
-            --exclude='storage/framework/maintenance.php' \
-            ./ ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }}:${{ secrets.HOSTINGER_PROJECT_PATH }}/
+          php artisan config:clear || true
+          php artisan route:clear || true
 
-          rsync -avz --delete -e "ssh -p ${{ secrets.HOSTINGER_PORT || 65002 }} -o StrictHostKeyChecking=no" \
-            public/build/ ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }}:/home/u234139505/domains/inventoryai.id/public_html/ekp/build/
+      - name: Run database migrations
+        run: php artisan migrate --force
+        env:
+          APP_KEY: ${{ secrets.APP_KEY }}
 
-      - name: ⚡ Run Artisan Commands on Hostinger
-        uses: appleboy/ssh-action@v1.2.5
+      - name: Seed default data
+        run: php artisan db:seed --force || true
+        env:
+          APP_KEY: ${{ secrets.APP_KEY }}
+
+      - name: Cache & optimize
+        run: |
+          php artisan config:cache
+          php artisan route:cache
+          php artisan view:cache
+          php artisan optimize
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.0
         with:
           host: ${{ secrets.HOSTINGER_HOST }}
+          port: ${{ secrets.HOSTINGER_PORT }}
           username: ${{ secrets.HOSTINGER_USERNAME }}
           key: ${{ secrets.HOSTINGER_SSH_KEY }}
-          port: ${{ secrets.HOSTINGER_PORT || 65002 }}
           script: |
             cd ${{ secrets.HOSTINGER_PROJECT_PATH }}
-            echo "=== Starting Deployment ==="
-            php artisan down || true
-            
-            # Fix SESSION_PATH in .env — strip any double-prefix bug from previous sed commands
-            sed -i 's|SESSION_PATH=/.*|SESSION_PATH=/ekp|' .env
-            # Set correct APP_URL for subdirectory deployment
-            sed -i 's|APP_URL=.*|APP_URL=https://inventoryai.id/ekp|' .env
-            
-            composer install --no-dev --no-interaction --ignore-platform-reqs
+            git fetch origin main
+            git reset --hard origin/main
+            composer install --no-dev --optimize-autoloader --no-interaction
+            npm ci
+            npm run build
             php artisan migrate --force
-            php artisan db:seed --class=DatabaseSeeder || true
-            php artisan optimize:clear
-            php artisan storage:link || true
+            php artisan db:seed --force || true
             php artisan config:cache
             php artisan route:cache
             php artisan view:cache
             php artisan optimize
-            php artisan up
-            echo "=== Deployment Complete ==="
+            php artisan storage:link || true

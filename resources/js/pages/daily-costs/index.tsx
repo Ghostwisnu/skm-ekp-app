@@ -82,6 +82,11 @@ function CostDialog({
 
     const submit = (event: React.FormEvent) => {
         event.preventDefault();
+        // Filter out empty extras before sending
+        const validExtras = form.data.extras.filter(
+            (e) => e.nama_biaya.trim() !== '',
+        );
+        form.setData('extras', validExtras);
         const options = { preserveScroll: true, onSuccess: onClose };
 
         if (cost) {
