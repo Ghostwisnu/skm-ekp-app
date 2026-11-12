@@ -19,6 +19,9 @@ npm run build
 echo "🗄️ [5/6] Running Database Migrations..."
 php artisan migrate --force
 
+echo "🌱 [5b/6] Seeding Default Data..."
+php artisan db:seed --force || true
+
 echo "⚡ [6/6] Clearing & Caching Optimizations..."
 php artisan config:cache
 php artisan route:cache
