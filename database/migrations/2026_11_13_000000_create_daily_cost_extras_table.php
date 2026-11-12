@@ -3,15 +3,13 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
-use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
     public function up(): void
     {
         // Idempotent: skip if table already exists
-        $tables = DB::select("SHOW TABLES LIKE 'daily_cost_extras'");
-        if (empty($tables)) {
+        if (!Schema::hasTable('daily_cost_extras')) {
             Schema::create('daily_cost_extras', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('daily_cost_id')->constrained()->cascadeOnDelete();
