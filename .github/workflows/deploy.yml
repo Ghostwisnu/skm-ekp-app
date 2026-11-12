@@ -91,11 +91,16 @@ jobs:
           password: ${{ secrets.HOSTINGER_PASSWORD }}
           script: |
             set -e
-            cd ${{ secrets.HOSTINGER_PROJECT_PATH }}
+            PROJECT_PATH="${{ secrets.HOSTINGER_PROJECT_PATH }}"
+            PUBLIC_PATH="/home/u234139505/domains/inventoryai.id/public_html/ekp"
             echo "=== Current directory ==="
             pwd
-            echo "=== Files in directory ==="
+            echo "=== Navigating to project ==="
+            cd "$PROJECT_PATH" || { echo "FAILED: Cannot cd to $PROJECT_PATH"; exit 1; }
+            echo "=== Files in project ==="
             ls -la | head -20
+            echo "=== composer.json exists? ==="
+            test -f composer.json && echo "YES" || echo "NO"
             echo "=== Adding GitHub to known hosts ==="
             ssh-keyscan -t ed25519,ecdsa,rsa github.com >> ~/.ssh/known_hosts
             echo "=== Pulling latest code ==="
@@ -120,5 +125,7 @@ jobs:
             php artisan route:cache
             php artisan view:cache
             php artisan optimize
+            echo "=== Sync public folder ==="
+            rsync -av --delete public/ "$PUBLIC_PATH/"
             php artisan storage:link || true
             echo "=== Deploy Complete ==="
