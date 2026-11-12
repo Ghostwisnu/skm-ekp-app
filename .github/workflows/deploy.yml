@@ -67,23 +67,24 @@ jobs:
             
             echo "=== Create .env ==="
             cat > .env << ENVEOF
-APP_NAME=Laravel
-APP_ENV=production
-APP_KEY=${{ secrets.APP_KEY }}
-APP_DEBUG=false
-APP_URL=https://inventoryai.id/ekp
-DB_CONNECTION=${{ secrets.DB_CONNECTION }}
-DB_HOST=${{ secrets.DB_HOST }}
-DB_PORT=${{ secrets.DB_PORT }}
-DB_DATABASE=${{ secrets.DB_DATABASE }}
-DB_USERNAME=${{ secrets.DB_USERNAME }}
-DB_PASSWORD=${{ secrets.DB_PASSWORD }}
-SESSION_DRIVER=database
-SESSION_PATH=/ekp
-VITE_APP_NAME=Laravel
-VITE_BASE_URL=/ekp
-ENVEOF
-            
+            APP_NAME=Laravel
+            APP_ENV=production
+            APP_KEY=${{ secrets.APP_KEY }}
+            APP_DEBUG=false
+            APP_URL=https://inventoryai.id/ekp
+            DB_CONNECTION=${{ secrets.DB_CONNECTION }}
+            DB_HOST=${{ secrets.DB_HOST }}
+            DB_PORT=${{ secrets.DB_PORT }}
+            DB_DATABASE=${{ secrets.DB_DATABASE }}
+            DB_USERNAME=${{ secrets.DB_USERNAME }}
+            DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+            SESSION_DRIVER=database
+            SESSION_PATH=/ekp
+            VITE_APP_NAME=Laravel
+            VITE_BASE_URL=/ekp
+            ENVEOF
+            sed -i 's/^[[:space:]]*//' .env
+
             echo "=== Clear caches ==="
             php artisan config:clear
             php artisan route:clear
