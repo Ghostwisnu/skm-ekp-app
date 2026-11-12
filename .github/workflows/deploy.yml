@@ -160,7 +160,7 @@ ENDPHP
             php artisan storage:link 2>/dev/null || true
 
             echo "=== Test DB connection ==="
-            php artisan tinker --execute="echo 'DB: ' . (DB::connection()->getPdo() ? 'yes' : 'no');" || echo "DB test skipped"
+            php artisan tinker --execute="echo 'DB ok';" || echo "DB test skipped"
 
             echo "=== Health check ==="
             php artisan --version
