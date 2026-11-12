@@ -87,7 +87,9 @@ jobs:
             git fetch origin main
             git reset --hard origin/main
             echo "=== Installing Composer ==="
-            composer install --no-dev --optimize-autoloader --no-interaction
+            composer install --no-dev --optimize-autoloader --no-interaction --no-scripts
+            rm -f bootstrap/cache/config.php bootstrap/cache/services.php bootstrap/cache/packages.php
+            php artisan package:discover --ansi
             echo "=== Building Frontend ==="
             npm ci
             npm run build
