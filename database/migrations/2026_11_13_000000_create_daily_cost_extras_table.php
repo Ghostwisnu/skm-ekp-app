@@ -1,20 +1,24 @@
 <?php
 
 use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\QueryException;
+use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
-use Illuminate\Database\Schema\Blueprint;
 
 return new class extends Migration
 {
     public function up(): void
     {
-        // Check if table exists using information_schema (works on all MySQL versions)
-        $result = DB::select(
-            "SELECT COUNT(*) as cnt FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = 'daily_cost_extras'"
-        );
+        // Idempotent: safely create if not exists
+        $this->createDailyCostExtras();
+    }
 
-        if ((int) ($result[0]->cnt ?? 0) === 0) {
+    private function createDailyCostExtras(): void
+    {
+        // Check using raw SQL (works on all MySQL versions)
+        $exists = DB::select("SELECT COUNT(*) as cnt FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = 'daily_cost_extras'");
+        if ((int) ($exists[0]->cnt ?? 0) === 0) {
             Schema::create('daily_cost_extras', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('daily_cost_id')->constrained()->cascadeOnDelete();
