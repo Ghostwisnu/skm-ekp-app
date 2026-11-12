@@ -127,6 +127,9 @@ jobs:
             mkdir -p "$PUBLIC"
             cp -a public/. "$PUBLIC"/
 
+            echo "=== Fix index.php path ==="
+            perl -i.bak -pe 's|__DIR__.\''/../vendor/autoload.php'\''|__DIR__.\''/../../skm-ekp-app/vendor/autoload.php'\''|g; s|__DIR__.\''/../bootstrap/app.php'\''|__DIR__.\''/../../skm-ekp-app/bootstrap/app.php'\''|g; s|__DIR__.\''/../storage/framework/maintenance.php'\''|__DIR__.\''/../../skm-ekp-app/storage/framework/maintenance.php'\''|g' "$PUBLIC/index.php"
+
             echo "=== Fix permissions ==="
             chmod -R 755 storage bootstrap/cache
             chown -R $USER:$USER storage bootstrap/cache 2>/dev/null || true
