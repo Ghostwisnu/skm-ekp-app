@@ -2,42 +2,48 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
-use Illuminate\Database\Seeder;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Seeders\DatabaseSeeder as BaseDatabaseSeeder;
 use Spatie\Permission\Models\Role;
 
-class DatabaseSeeder extends Seeder
+class DatabaseSeeder extends BaseDatabaseSeeder
 {
     /**
      * Seed the application's database.
      */
     public function run(): void
     {
-        // Create admin user if not exists
-        $admin = User::updateOrCreate(
-            ['email' => 'admin@example.com'],
-            [
-                'name' => 'Administrator',
-                'password' => bcrypt('password'),
-            ]
-        );
+        Model::preventLazyLoadinging(false);
 
-        // Assign admin role using Spatie
-        $adminRole = Role::firstOrCreate(['name' => 'admin']);
-        $admin->assignRole($adminRole);
+        $this->call([
+            RoleSeeder::class,
+            NavigationMenuSeeder::class,
+        ]);
 
-        // Seed other test users
-        foreach (['operator', 'keuangan'] as $roleName) {
-            $user = User::updateOrCreate(
-                ['email' => "{$roleName}@example.com"],
+        $this->seedUsers();
+    }
+
+    private function seedUsers(): void
+    {
+        $users = [
+            ['name' => 'Administrator', 'email' => 'admin@example.com', 'roles' => ['admin']],
+            ['name' => 'Operator', 'email' => 'operator@example.com', 'roles' => ['operator']],
+            ['name' => 'Keuangan', 'email' => 'keuangan@example.com', 'roles' => ['keuangan']],
+        ];
+
+        foreach ($users as $userData) {
+            $user = \App\Models\User::updateOrCreate(
+                ['email' => $userData['email']],
                 [
-                    'name' => ucfirst($roleName),
+                    'name' => $userData['name'],
                     'password' => bcrypt('password'),
                 ]
             );
 
-            $role = Role::firstOrCreate(['name' => $roleName]);
-            $user->assignRole($role);
+            foreach ($userData['roles'] as $roleName) {
+                $role = Role::firstOrCreate(['name' => $roleName]);
+                $user->syncRoles([$role]);
+            }
         }
     }
 }

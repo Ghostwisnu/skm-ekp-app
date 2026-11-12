@@ -132,3 +132,20 @@ export type VehicleReportRow = {
     total_biaya: number;
     margin: number;
 };
+
+export type NavMenuItem = {
+    id: number;
+    name: string;
+    route: string | null;
+    icon: string | null;
+    sort_order: number;
+    is_active: boolean;
+    role_ids: number[];
+    children?: NavMenuItem[];
+};
+
+export type RoleOption = {
+    id: number;
+    name: string;
+    label: string;
+};

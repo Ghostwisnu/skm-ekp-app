@@ -24,62 +24,43 @@ import { dashboard } from '@/routes';
 import { getUserRole } from '@/types/auth';
 import type { Auth, NavItem } from '@/types';
 
-const navByRole = (role: string): NavItem[] => {
-    const items: (NavItem & { roles: Auth['user']['role'][] })[] = [
-        {
-            title: 'Dashboard',
-            href: dashboard(),
-            icon: LayoutGrid,
-            roles: ['admin', 'operator', 'keuangan'],
-        },
-        {
-            title: 'Trip',
-            href: '/trips',
-            icon: Truck,
-            roles: ['admin', 'operator'],
-        },
-        {
-            title: 'Biaya Harian',
-            href: '/daily-costs',
-            icon: Wallet,
-            roles: ['admin', 'operator'],
-        },
-        {
-            title: 'Client',
-            href: '/clients',
-            icon: Building2,
-            roles: ['admin', 'operator', 'keuangan'],
-        },
-        {
-            title: 'Kendaraan',
-            href: '/vehicles',
-            icon: Truck,
-            roles: ['admin', 'operator', 'keuangan'],
-        },
-        {
-            title: 'Invoice',
-            href: '/invoices',
-            icon: Receipt,
-            roles: ['admin', 'keuangan'],
-        },
-        {
-            title: 'Laporan Plat',
-            href: '/reports/vehicles',
-            icon: BarChart3,
-            roles: ['admin', 'keuangan'],
-        },
-        {
-            title: 'Pengguna & Pengaturan',
-            href: '/admin/users',
-            icon: Settings,
-            roles: ['admin'],
-        },
-    ];
-
-    return items.filter((item) => item.roles.some((r) => r === role));
+const ICON_MAP: Record<string, React.ElementType> = {
+    LayoutGrid,
+    Truck,
+    Wallet,
+    Building2,
+    Receipt,
+    BarChart3,
+    Settings,
+    Users: Settings,
+    Calendar: LayoutGrid,
+    FileText: Receipt,
+    Package: LayoutGrid,
+    MapPin: LayoutGrid,
+    Clock: LayoutGrid,
+    Database: Settings,
+    Shield: Settings,
+    Plus: LayoutGrid,
+    Minus: LayoutGrid,
+    Edit: LayoutGrid,
+    Trash2: LayoutGrid,
+    Search: LayoutGrid,
+    Filter: LayoutGrid,
+    Download: LayoutGrid,
+    Upload: LayoutGrid,
+    RefreshCw: LayoutGrid,
+    CheckCircle: LayoutGrid,
+    AlertCircle: LayoutGrid,
 };
+
+function iconByName(name: string | null): React.ElementType {
+    return name ? ICON_MAP[name] || LayoutGrid : LayoutGrid;
+}
+
 export function AppSidebar() {
-    const { auth } = usePage<{ auth: Auth }>().props;
+    const { auth, navigationMenus } = usePage<{ auth: Auth; navigationMenus: NavItem[] }>().props;
+    const role = getUserRole(auth.user);
+
     return (
         <Sidebar collapsible="icon" variant="inset">
             <SidebarHeader>
@@ -95,7 +76,7 @@ export function AppSidebar() {
             </SidebarHeader>
 
             <SidebarContent>
-                <NavMain items={navByRole(getUserRole(auth.user))} />
+                <NavMain items={navigationMenus} />
             </SidebarContent>
 
             <SidebarFooter>

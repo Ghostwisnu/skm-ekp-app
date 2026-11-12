@@ -4,6 +4,7 @@ use App\Http\Controllers\ClientController;
 use App\Http\Controllers\DailyCostController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\InvoiceController;
+use App\Http\Controllers\NavigationMenuController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SettingController;
 use App\Http\Controllers\TripController;
@@ -44,6 +45,12 @@ Route::middleware('auth')->group(function () {
         Route::resource('users', UserController::class)->only(['index', 'store', 'update', 'destroy']);
         Route::get('settings', [SettingController::class, 'show'])->name('settings.show');
         Route::put('settings', [SettingController::class, 'update'])->name('settings.update');
+
+        // Navigation Menu Management
+        Route::get('navigation-menus', [NavigationMenuController::class, 'index'])->name('navigation.menus.index');
+        Route::post('navigation-menus', [NavigationMenuController::class, 'store'])->name('navigation.menus.store');
+        Route::put('navigation-menus/{id}', [NavigationMenuController::class, 'update'])->name('navigation.menus.update');
+        Route::delete('navigation-menus/{id}', [NavigationMenuController::class, 'destroy'])->name('navigation.menus.destroy');
     });
 });
 
