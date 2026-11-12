@@ -81,6 +81,7 @@ jobs:
             set -e
             cd ${{ secrets.HOSTINGER_PROJECT_PATH }}
             echo "=== Pulling latest code ==="
+            git remote set-url origin git@github.com:Ghostwisnu/skm-ekp-app.git
             git fetch origin main
             git reset --hard origin/main
             echo "=== Installing Composer ==="
