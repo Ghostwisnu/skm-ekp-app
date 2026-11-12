@@ -122,9 +122,9 @@ jobs:
             rm -rf "$PUBLIC"
             mkdir -p "$PUBLIC"
             cp -a public/. "$PUBLIC"/
-            php artisan storage:link || true
+            php artisan storage:link 2>/dev/null || true
 
             echo "=== Health check ==="
-            php artisan about
+            php artisan --version
 
             echo "✅ Deploy Success"
