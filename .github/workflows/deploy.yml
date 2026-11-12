@@ -129,22 +129,22 @@ jobs:
 
             echo "=== Fix index.php path ==="
             php << 'PHPEOF'
-<?php
-$file = getenv('PUBLIC');
-$content = file_get_contents($file . '/index.php');
-$search = [
-    "__DIR__.'/../vendor/autoload.php",
-    "__DIR__.'/../bootstrap/app.php",
-    "__DIR__.'/../storage/framework/maintenance.php",
-];
-$replace = [
-    "__DIR__.'/../../skm-ekp-app/vendor/autoload.php",
-    "__DIR__.'/../../skm-ekp-app/bootstrap/app.php",
-    "__DIR__.'/../../skm-ekp-app/storage/framework/maintenance.php",
-];
-file_put_contents($file . '/index.php', str_replace($search, $replace, $content));
-echo "Done\n";
-PHPEOF
+                <?php
+                $file = getenv('PUBLIC');
+                $content = file_get_contents($file . '/index.php');
+                $search = [
+                    "__DIR__.'/../vendor/autoload.php",
+                    "__DIR__.'/../bootstrap/app.php",
+                    "__DIR__.'/../storage/framework/maintenance.php",
+                ];
+                $replace = [
+                    "__DIR__.'/../../skm-ekp-app/vendor/autoload.php",
+                    "__DIR__.'/../../skm-ekp-app/bootstrap/app.php",
+                    "__DIR__.'/../../skm-ekp-app/storage/framework/maintenance.php",
+                ];
+                file_put_contents($file . '/index.php', str_replace($search, $replace, $content));
+                echo "Done\n";
+            PHPEOF
 
             echo "=== Fix permissions ==="
             chmod -R 755 storage bootstrap/cache
