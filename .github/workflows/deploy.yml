@@ -128,23 +128,12 @@ jobs:
             cp -a public/. "$PUBLIC"/
 
             echo "=== Fix index.php path ==="
-            php << 'PHPEOF'
-                <?php
-                $file = getenv('PUBLIC');
-                $content = file_get_contents($file . '/index.php');
-                $search = [
-                    "__DIR__.'/../vendor/autoload.php",
-                    "__DIR__.'/../bootstrap/app.php",
-                    "__DIR__.'/../storage/framework/maintenance.php",
-                ];
-                $replace = [
-                    "__DIR__.'/../../skm-ekp-app/vendor/autoload.php",
-                    "__DIR__.'/../../skm-ekp-app/bootstrap/app.php",
-                    "__DIR__.'/../../skm-ekp-app/storage/framework/maintenance.php",
-                ];
-                file_put_contents($file . '/index.php', str_replace($search, $replace, $content));
-                echo "Done\n";
-            PHPEOF
+            sed -i \
+                -e 's|__DIR__.\x27/../vendor/autoload.php\x27|__DIR__.\x27../../skm-ekp-app/vendor/autoload.php\x27|g' \
+                -e 's|__DIR__.\x27/../bootstrap/app.php\x27|__DIR__.\x27../../skm-ekp-app/bootstrap/app.php\x27|g' \
+                -e 's|__DIR__.\x27/../storage/framework/maintenance.php\x27|__DIR__.\x27../../skm-ekp-app/storage/framework/maintenance.php\x27|g' \
+                "$PUBLIC/index.php"
+            grep -q 'skm-ekp-app/vendor/autoload' "$PUBLIC/index.php" && echo "index.php OK" || echo "FAILED to fix index.php"
 
             echo "=== Fix permissions ==="
             chmod -R 755 storage bootstrap/cache
