@@ -24,6 +24,7 @@ jobs:
         with:
           php-version: '8.5'
           extensions: mbstring, xml, json, mysql, curl, gd, zip, dom, simplexml
+          ini-values: memory_limit=512M
 
       - name: Cache Composer packages
         uses: actions/cache@v4
@@ -56,14 +57,26 @@ jobs:
           php artisan route:clear || true
 
       - name: Run database migrations
-        run: php artisan migrate --force
+        run: php artisan migrate --force --no-interaction
         env:
           APP_KEY: ${{ secrets.APP_KEY }}
+          DB_CONNECTION: ${{ secrets.DB_CONNECTION || 'mysql' }}
+          DB_HOST: ${{ secrets.DB_HOST }}
+          DB_PORT: ${{ secrets.DB_PORT }}
+          DB_DATABASE: ${{ secrets.DB_DATABASE }}
+          DB_USERNAME: ${{ secrets.DB_USERNAME }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
 
       - name: Seed default data
         run: php artisan db:seed --force || true
         env:
           APP_KEY: ${{ secrets.APP_KEY }}
+          DB_CONNECTION: ${{ secrets.DB_CONNECTION || 'mysql' }}
+          DB_HOST: ${{ secrets.DB_HOST }}
+          DB_PORT: ${{ secrets.DB_PORT }}
+          DB_DATABASE: ${{ secrets.DB_DATABASE }}
+          DB_USERNAME: ${{ secrets.DB_USERNAME }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
 
       - name: Cache & optimize
         run: |
@@ -86,6 +99,8 @@ jobs:
             composer install --no-dev --optimize-autoloader --no-interaction
             npm ci
             npm run build
+            php artisan config:clear
+            php artisan route:clear
             php artisan migrate --force
             php artisan db:seed --force || true
             php artisan config:cache

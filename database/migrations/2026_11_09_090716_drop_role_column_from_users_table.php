@@ -9,36 +9,27 @@ return new class extends Migration
 {
     public function up(): void
     {
-        // Only drop if the column actually exists (idempotent)
-        $columns = DB::select("PRAGMA table_info(users)");
-        $hasRole = false;
-        foreach ($columns as $col) {
-            if ($col->name === 'role') {
-                $hasRole = true;
-                break;
-            }
+        // Drop index first (MySQL requires this before dropping column)
+        try {
+            DB::statement('ALTER TABLE users DROP INDEX role');
+        } catch (\Exception $e) {
+            // Index doesn't exist, continue
         }
 
-        if ($hasRole) {
+        // Drop column if exists
+        try {
             Schema::table('users', function (Blueprint $table) {
                 $table->dropColumn('role');
             });
+        } catch (\Exception $e) {
+            // Column doesn't exist, continue
         }
     }
 
     public function down(): void
     {
-        // Only add if not exists (idempotent)
-        $columns = DB::select("PRAGMA table_info(users)");
-        $hasRole = false;
-        foreach ($columns as $col) {
-            if ($col->name === 'role') {
-                $hasRole = true;
-                break;
-            }
-        }
-
-        if (!$hasRole) {
+        // Only add if not exists
+        if (!Schema::hasColumn('users', 'role')) {
             Schema::table('users', function (Blueprint $table) {
                 $table->string('role')->default('operator')->after('password')->index();
             });
