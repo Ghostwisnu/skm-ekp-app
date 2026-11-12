@@ -71,7 +71,6 @@ jobs:
 
             echo "=== Updating code ==="
             cd "$PROJECT"
-            git remote set-url origin "https://${REPO_ACCESS_TOKEN}@github.com/Ghostwisnu/skm-ekp-app.git"
             git fetch origin main
             git reset --hard origin/main
 
