@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\NavigationMenu;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
