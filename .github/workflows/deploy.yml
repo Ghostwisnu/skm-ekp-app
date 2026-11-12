@@ -76,20 +76,29 @@ jobs:
           host: ${{ secrets.HOSTINGER_HOST }}
           port: ${{ secrets.HOSTINGER_PORT }}
           username: ${{ secrets.HOSTINGER_USERNAME }}
-          password: ${{ secrets.HOSTINGER_PASSWORD }}
+          key: ${{ secrets.HOSTINGER_SSH_KEY }}
           script: |
+            set -e
             cd ${{ secrets.HOSTINGER_PROJECT_PATH }}
+            echo "=== Pulling latest code ==="
             git fetch origin main
             git reset --hard origin/main
+            echo "=== Installing Composer ==="
             composer install --no-dev --optimize-autoloader --no-interaction
+            echo "=== Building Frontend ==="
             npm ci
             npm run build
+            echo "=== Clearing caches ==="
             php artisan config:clear
             php artisan route:clear
+            echo "=== Running migrations ==="
             php artisan migrate --force
+            echo "=== Seeding data ==="
             php artisan db:seed --force || true
+            echo "=== Optimizing ==="
             php artisan config:cache
             php artisan route:cache
             php artisan view:cache
             php artisan optimize
             php artisan storage:link || true
+            echo "=== Deploy Complete ==="

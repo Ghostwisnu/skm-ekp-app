@@ -87,12 +87,21 @@ function CostDialog({
             (e) => e.nama_biaya.trim() !== '',
         );
         form.setData('extras', validExtras);
-        const options = { preserveScroll: true, onSuccess: onClose };
 
         if (cost) {
-            form.put(`/daily-costs/${cost.id}`, options);
+            form.put(`/daily-costs/${cost.id}`, {
+                preserveScroll: true,
+                preserveState: true,
+                onError: (err) => console.log('Error:', err),
+                onSuccess: () => onClose(),
+            });
         } else {
-            form.post('/daily-costs', options);
+            form.post('/daily-costs', {
+                preserveScroll: true,
+                preserveState: true,
+                onError: (err) => console.log('Error:', err),
+                onSuccess: () => onClose(),
+            });
         }
     };
 
