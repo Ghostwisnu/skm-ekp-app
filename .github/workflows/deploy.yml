@@ -62,18 +62,6 @@ jobs:
           sed -i "s|DB_USERNAME=.*|DB_USERNAME=${{ secrets.DB_USERNAME }}|" .env
           sed -i "s|DB_PASSWORD=.*|DB_PASSWORD=${{ secrets.DB_PASSWORD }}|" .env
           echo "✅ .env created"
-          cat .env | grep -E "APP_KEY|DB_" || true
-
-      - name: Clear config & route cache
-        run: |
-          php artisan config:clear || true
-          php artisan route:clear || true
-
-      - name: Run database migrations
-        run: php artisan migrate --force --no-interaction
-
-      - name: Seed default data
-        run: php artisan db:seed --force || true
 
       - name: Cache & optimize
         run: |
