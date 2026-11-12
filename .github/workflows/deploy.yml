@@ -51,6 +51,18 @@ jobs:
       - name: Build frontend
         run: npm run build
 
+      - name: Upload built frontend assets
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.HOSTINGER_HOST }}
+          port: ${{ secrets.HOSTINGER_PORT }}
+          username: ${{ secrets.HOSTINGER_USERNAME }}
+          password: ${{ secrets.HOSTINGER_PASSWORD }}
+          source: "public/build/**"
+          target: ${{ secrets.HOSTINGER_PROJECT_PATH }}/public/build
+          strip_components: 2
+          overwrite: true
+
       - name: Create .env from secrets
         run: |
           cp .env.example .env
@@ -91,8 +103,6 @@ jobs:
             rm -f bootstrap/cache/config.php bootstrap/cache/services.php bootstrap/cache/packages.php
             php artisan package:discover --ansi
             echo "=== Building Frontend ==="
-            npm ci
-            npm run build
             echo "=== Clearing caches ==="
             php artisan config:clear
             php artisan route:clear
