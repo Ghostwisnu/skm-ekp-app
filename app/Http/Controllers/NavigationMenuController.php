@@ -28,9 +28,13 @@ class NavigationMenuController extends Controller
         ]);
     }
 
-    private function buildTree(NavigationMenu $root): array
+    /**
+     * @param  \Illuminate\Database\Eloquent\Collection<int, NavigationMenu>  $menus
+     * @return array<int, array{id: int, name: string, route: ?string, icon: ?string, sort_order: int, is_active: bool, role_ids: int[], children: array}>
+     */
+    private function buildTree($menus): array
     {
-        return [
+        return $menus->map(fn (NavigationMenu $root) => [
             'id' => $root->id,
             'name' => $root->name,
             'route' => $root->route,
@@ -39,7 +43,7 @@ class NavigationMenuController extends Controller
             'is_active' => $root->is_active,
             'role_ids' => $root->roles->pluck('id')->toArray(),
             'children' => $root->children->map(fn (NavigationMenu $child) => $this->buildChild($child))->values()->toArray(),
-        ];
+        ])->values()->toArray();
     }
 
     private function buildChild(NavigationMenu $menu): array
