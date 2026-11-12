@@ -102,5 +102,6 @@ class NavigationMenu extends Model
                 'isActive' => $menu->is_active,
                 'children' => collect(),
             ]),
+        );
     }
 }
