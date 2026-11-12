@@ -75,7 +75,7 @@ jobs:
             git reset --hard origin/main
 
             echo "=== Composer install ==="
-            composer install --no-dev --optimize-autoloader --no-interaction
+            composer install --no-dev --optimize-autoloader --no-interaction --no-scripts
 
             echo "=== Create .env ==="
             cat > .env << ENVEOF
@@ -95,6 +95,9 @@ jobs:
             VITE_APP_NAME=Laravel
             VITE_BASE_URL=/ekp
             ENVEOF
+
+            echo "=== Discover packages ==="
+            php artisan package:discover --ansi
 
             echo "=== Clear caches ==="
             php artisan config:clear
