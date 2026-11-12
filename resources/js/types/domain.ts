@@ -80,6 +80,13 @@ export type DailyCost = {
     no_plat: string;
     no_surat_jalan: string;
     uang_jalan: number;
+    extras?: DailyCostExtra[];
+};
+
+export type DailyCostExtra = {
+    id: number;
+    nama_biaya: string;
+    nominal: number;
 };
 
 export type InvoiceLine = {
@@ -120,6 +127,8 @@ export type VehicleReportRow = {
     trip: number;
     jumlah_barang: number;
     nilai_invoice: number;
-    biaya: number;
+    biaya_uang_jalan: number;
+    biaya_lainnya: number;
+    total_biaya: number;
     margin: number;
 };

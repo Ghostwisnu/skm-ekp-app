@@ -22,6 +22,9 @@ class DailyCostRequest extends FormRequest
                 Rule::unique('daily_costs', 'no_surat_jalan')->ignore($this->route('dailyCost')),
             ],
             'uang_jalan' => ['required', 'integer', 'min:0', 'max:999999999999'],
+            'extras' => [$this->route('dailyCost') ? 'nullable' : 'required', 'array'],
+            'extras.*.nama_biaya' => ['nullable', 'string', 'max:255'],
+            'extras.*.nominal' => ['nullable', 'integer', 'min:0', 'max:999999999999'],
         ];
     }
 

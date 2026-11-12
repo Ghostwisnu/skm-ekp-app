@@ -10,14 +10,14 @@ class VehiclePerformanceReport
 {
     /**
      * Performance per vehicle: trips, item quantities, invoice value (before VAT), cost and margin.
+     * Cost includes uang_jalan + all extra costs from daily_cost_extras.
      *
      * @param  array{from?: ?string, to?: ?string, vehicle_id?: ?int|?string}  $filters
-     * @return Collection<int, array{vehicle_id: int, plat: string, trip: int, jumlah_barang: float, nilai_invoice: int, biaya: int, margin: int}>
+     * @return Collection<int, array{vehicle_id: int, plat: string, trip: int, jumlah_barang: float, nilai_invoice: int, biaya_uang_jalan: int, biaya_lainnya: int, total_biaya: int, margin: int}>
      */
     public function rows(array $filters = []): Collection
     {
         $trips = Trip::query()
-
             ->with(['vehicle', 'items'])
             ->withSum('invoiceLines as nilai_invoice', 'jumlah')
             ->when($filters['from'] ?? null, fn ($query, $from) => $query->whereDate('tanggal', '>=', $from))
@@ -35,26 +35,37 @@ class VehiclePerformanceReport
             })
             ->get();
 
+        // Get extras with their associated costs
+        $extraIds = $costs->pluck('id');
+        $extras = DB::table('daily_cost_extras')
+            ->whereIn('daily_cost_id', $extraIds)
+            ->get();
+
         return $trips
             ->groupBy('vehicle_id')
-
-            ->map(function (Collection $group) use ($costs): array {
+            ->map(function (Collection $group) use ($costs, $extras): array {
                 $nilaiInvoice = (int) $group->sum('nilai_invoice');
 
                 $plat = $group->first()->vehicle->plat;
-                $biaya = (int) $costs
-                    ->where('no_plat', $plat)
-                    ->sum('uang_jalan');
+
+                $platCosts = $costs->where('no_plat', $plat);
+                $uangJalan = (int) $platCosts->sum('uang_jalan');
+
+                // Sum extras for this plat's costs
+                $platExtraIds = $platCosts->pluck('id');
+                $platExtras = $extras->whereIn('daily_cost_id', $platExtraIds);
+                $biayaLainnya = (int) $platExtras->sum('nominal');
 
                 return [
                     'vehicle_id' => $group->first()->vehicle_id,
-
                     'plat' => $plat,
                     'trip' => $group->count(),
                     'jumlah_barang' => (float) $group->sum(fn (Trip $trip): float => $trip->items->sum(fn ($item): float => $item->qty_barang ?? $item->tonase_kg)),
                     'nilai_invoice' => $nilaiInvoice,
-                    'biaya' => $biaya,
-                    'margin' => $nilaiInvoice - $biaya,
+                    'biaya_uang_jalan' => $uangJalan,
+                    'biaya_lainnya' => $biayaLainnya,
+                    'total_biaya' => $uangJalan + $biayaLainnya,
+                    'margin' => $nilaiInvoice - ($uangJalan + $biayaLainnya),
                 ];
             })
             ->sortBy('plat')

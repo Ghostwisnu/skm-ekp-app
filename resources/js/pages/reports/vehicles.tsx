@@ -62,19 +62,23 @@ export default function VehicleReport({
                         <Th right>Trip</Th>
                         <Th right>Qty Barang</Th>
                         <Th right>Nilai Invoice</Th>
-                        <Th right>Biaya</Th>
+                        <Th right>Uang Jalan</Th>
+                        <Th right>Biaya Lainnya</Th>
+                        <Th right>Total Biaya</Th>
                         <Th right>Selisih</Th>
                     </tr>
                 </thead>
                 <tbody>
-                    {rows.length === 0 && <EmptyRow colSpan={6} />}
+                    {rows.length === 0 && <EmptyRow colSpan={8} />}
                     {rows.map((row) => (
                         <tr key={row.vehicle_id}>
                             <Td>{row.plat}</Td>
                             <Td right>{row.trip}</Td>
                             <Td right>{formatNumber(row.jumlah_barang)}</Td>
                             <Td right>{formatRupiah(row.nilai_invoice)}</Td>
-                            <Td right>{formatRupiah(row.biaya)}</Td>
+                            <Td right>{formatRupiah(row.biaya_uang_jalan)}</Td>
+                            <Td right>{formatRupiah(row.biaya_lainnya)}</Td>
+                            <Td right className="font-semibold">{formatRupiah(row.total_biaya)}</Td>
                             <Td right className="font-semibold text-amber-600">
                                 {formatRupiah(row.margin)}
                             </Td>
