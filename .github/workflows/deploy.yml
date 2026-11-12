@@ -70,15 +70,15 @@ jobs:
           php artisan view:cache
           php artisan optimize
 
-      - name: Upload built frontend assets
+      - name: Upload built frontend assets and .env
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.HOSTINGER_HOST }}
           port: ${{ secrets.HOSTINGER_PORT }}
           username: ${{ secrets.HOSTINGER_USERNAME }}
           password: ${{ secrets.HOSTINGER_PASSWORD }}
-          source: "public/build/**"
-          target: "/home/u234139505/domains/inventoryai.id/public_html/ekp/build"
+          source: "public/build/**,.env"
+          target: "/home/u234139505/domains/inventoryai.id/skm-ekp-app"
           strip_components: 2
           overwrite: true
 
@@ -122,8 +122,8 @@ jobs:
             rm -f bootstrap/cache/config.php bootstrap/cache/services.php bootstrap/cache/packages.php
             php artisan package:discover --ansi
 
-            echo "=== Copying .env from runner ==="
-            cp /github/workspace/.env .env
+            echo "=== .env already copied via SCP ==="
+            ls -la .env
 
             echo "=== Database ==="
             php artisan config:clear
