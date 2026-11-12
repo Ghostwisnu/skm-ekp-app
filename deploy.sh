@@ -16,7 +16,9 @@ echo "🎨 [4/6] Installing NPM Packages & Building Frontend..."
 npm ci
 npm run build
 
-echo "🗄️ [5/6] Running Database Migrations..."
+echo "🗄️ [5/6] Clearing Cache & Running Database Migrations..."
+php artisan config:clear || true
+php artisan route:clear || true
 php artisan migrate --force
 
 echo "🌱 [5b/6] Seeding Default Data..."
