@@ -128,9 +128,28 @@ jobs:
             cp -a public/. "$PUBLIC"/
 
             echo "=== Fix index.php path ==="
-            sed -i 's|__DIR__.\x27/../vendor/autoload.php\x27|__DIR__.\x27../../skm-ekp-app/vendor/autoload.php\x27|g' "$PUBLIC/index.php"
-            sed -i 's|__DIR__.\x27/../bootstrap/app.php\x27|__DIR__.\x27../../skm-ekp-app/bootstrap/app.php\x27|g' "$PUBLIC/index.php"
-            sed -i 's|__DIR__.\x27/../storage/framework/maintenance.php\x27|__DIR__.\x27../../skm-ekp-app/storage/framework/maintenance.php\x27|g' "$PUBLIC/index.php"
+            tee "$PUBLIC/index.php" > /dev/null << 'ENDPHP'
+<?php
+
+use Illuminate\Foundation\Application;
+use Illuminate\Http\Request;
+
+define('LARAVEL_START', microtime(true));
+
+// Determine if the application is in maintenance mode...
+if (file_exists($maintenance = __DIR__.'/../../skm-ekp-app/storage/framework/maintenance.php')) {
+    require $maintenance;
+}
+
+// Register the Composer autoloader...
+require __DIR__.'/../../skm-ekp-app/vendor/autoload.php';
+
+// Bootstrap Laravel and handle the request...
+/** @var Application $app */
+$app = require_once __DIR__.'/../../skm-ekp-app/bootstrap/app.php';
+
+$app->handleRequest(Request::capture());
+ENDPHP
 
             echo "=== Fix permissions ==="
             chmod -R 755 storage bootstrap/cache
@@ -141,7 +160,7 @@ jobs:
             php artisan storage:link 2>/dev/null || true
 
             echo "=== Test DB connection ==="
-            php artisan tinker --execute='echo "DB connected: " . (DB::connection()->getPdo() ? "yes" : "no");' || echo "DB test skipped"
+            php artisan tinker --execute="echo 'DB: ' . (DB::connection()->getPdo() ? 'yes' : 'no');" || echo "DB test skipped"
 
             echo "=== Health check ==="
             php artisan --version
