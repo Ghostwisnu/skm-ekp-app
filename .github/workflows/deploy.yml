@@ -97,12 +97,14 @@ jobs:
             echo "=== Pulling latest code ==="
             git remote set-url origin https://${{ secrets.REPO_ACCESS_TOKEN }}@github.com/Ghostwisnu/skm-ekp-app.git
             git fetch origin main
+            git clean -fd
             git reset --hard origin/main
+            echo "=== Verify migration file ==="
+            head -15 database/migrations/2026_11_13_000000_create_daily_cost_extras_table.php
             echo "=== Installing Composer ==="
             composer install --no-dev --optimize-autoloader --no-interaction --no-scripts
             rm -f bootstrap/cache/config.php bootstrap/cache/services.php bootstrap/cache/packages.php
             php artisan package:discover --ansi
-            echo "=== Building Frontend ==="
             echo "=== Clearing caches ==="
             php artisan config:clear
             php artisan route:clear
