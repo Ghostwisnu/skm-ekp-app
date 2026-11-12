@@ -63,13 +63,6 @@ jobs:
           sed -i "s|DB_PASSWORD=.*|DB_PASSWORD=${{ secrets.DB_PASSWORD }}|" .env
           echo "✅ .env created"
 
-      - name: Cache & optimize
-        run: |
-          php artisan config:cache
-          php artisan route:cache
-          php artisan view:cache
-          php artisan optimize
-
       - name: Upload built frontend assets
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -78,19 +71,8 @@ jobs:
           username: ${{ secrets.HOSTINGER_USERNAME }}
           password: ${{ secrets.HOSTINGER_PASSWORD }}
           source: "public/build/**"
-          target: "/home/u234139505/domains/inventoryai.id/public_html/ekp/build"
+          target: "/home/u234139505/domains/inventoryai.id/skm-ekp-app/public/build"
           strip_components: 2
-          overwrite: true
-
-      - name: Upload .env
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ secrets.HOSTINGER_HOST }}
-          port: ${{ secrets.HOSTINGER_PORT }}
-          username: ${{ secrets.HOSTINGER_USERNAME }}
-          password: ${{ secrets.HOSTINGER_PASSWORD }}
-          source: ".env"
-          target: "/home/u234139505/domains/inventoryai.id/skm-ekp-app/.env"
           overwrite: true
 
       - name: Deploy via SSH
@@ -107,7 +89,7 @@ jobs:
             ssh-keyscan -t ed25519,ecdsa,rsa github.com >> ~/.ssh/known_hosts 2>/dev/null || true
 
             echo "=== Project state ==="
-            ls -la "$PROJECT" 2>/dev/null | head -30 || echo "Project folder does not exist"
+            ls -la "$PROJECT" 2>/dev/null | head -20 || echo "Project folder does not exist"
 
             if [ ! -f "$PROJECT/composer.json" ]; then
               echo "=== composer.json missing - re-cloning repository ==="
@@ -132,9 +114,6 @@ jobs:
             composer install --no-dev --optimize-autoloader --no-interaction --no-scripts
             rm -f bootstrap/cache/config.php bootstrap/cache/services.php bootstrap/cache/packages.php
             php artisan package:discover --ansi
-
-            echo "=== .env already copied via SCP ==="
-            ls -la .env
 
             echo "=== Database ==="
             php artisan config:clear
