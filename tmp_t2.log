@@ -1,0 +1,2 @@
+{"tool":"pest","result":"failed","tests":1,"passed":0,"assertions":3,"duration_ms":28116,"failed":1,"failures":[{"test":"P\\Tests\\Feature\\ReportTest::__pest_evaluable_report_can_be_filtered_by_period__vehicle_and_client","file":"\\Project\\skm-ekp-app\\tests\\Feature\\ReportTest.php","line":54,"message":"Failed asserting that actual size 2 matches expected size 1.","trace":["C:\\Project\\skm-ekp-app\\tests\\Feature\\ReportTest.php:54"]}]}
+EXIT=1
