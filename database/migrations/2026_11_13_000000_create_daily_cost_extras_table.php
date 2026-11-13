@@ -3,7 +3,6 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\QueryException;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -16,9 +15,11 @@ return new class extends Migration
 
     private function createDailyCostExtras(): void
     {
-        // Check using raw SQL (works on all MySQL versions)
-        $exists = DB::select("SELECT COUNT(*) as cnt FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = 'daily_cost_extras'");
-        if ((int) ($exists[0]->cnt ?? 0) === 0) {
+        if (Schema::hasTable('daily_cost_extras')) {
+            return;
+        }
+
+        try {
             Schema::create('daily_cost_extras', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('daily_cost_id')->constrained()->cascadeOnDelete();
@@ -26,6 +27,11 @@ return new class extends Migration
                 $table->unsignedBigInteger('nominal')->default(0);
                 $table->timestamps();
             });
+        } catch (QueryException $e) {
+            // Tolerate a concurrent create of the same table, rethrow everything else.
+            if (($e->errorInfo[0] ?? null) !== '42S01') {
+                throw $e;
+            }
         }
     }
 

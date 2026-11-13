@@ -32,6 +32,8 @@ jobs:
           node-version: '20'
 
       - name: Build frontend
+        env:
+          VITE_BASE_URL: /ekp/build/
         run: npm ci && npm run build
 
       - name: Upload built frontend assets
@@ -90,10 +92,10 @@ jobs:
             DB_DATABASE=${{ secrets.DB_DATABASE }}
             DB_USERNAME=${{ secrets.DB_USERNAME }}
             DB_PASSWORD=${{ secrets.DB_PASSWORD }}
-            SESSION_DRIVER=database
+            SESSION_DRIVER=file
             SESSION_PATH=/ekp
             VITE_APP_NAME=Laravel
-            VITE_BASE_URL=/ekp
+            VITE_BASE_URL=/ekp/build/
             ENVEOF
 
             echo "=== Verify .env ==="

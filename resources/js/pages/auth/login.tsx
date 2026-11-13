@@ -35,14 +35,14 @@ export default function Login({ status, canResetPassword }: Props) {
                                 <Label htmlFor="username">Nama Pengguna</Label>
                                 <Input
                                     id="username"
-                                    name="username"
+                                    name="name"
                                     required
                                     autoFocus
                                     tabIndex={1}
                                     autoComplete="username"
                                     placeholder="Masukkan nama anda"
                                 />
-                                <InputError message={errors.username} />
+                                <InputError message={errors.name} />
                             </div>
 
                             <div className="grid gap-2">
