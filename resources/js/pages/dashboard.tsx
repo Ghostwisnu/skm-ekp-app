@@ -7,6 +7,7 @@ import {
     Th,
 } from '@/components/page-shell';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { FilterBar } from '@/components/filter-bar';
 import { formatDate, formatNumber, formatRupiah } from '@/lib/format';
 import { dashboard } from '@/routes';
 import type { Trip } from '@/types/domain';
@@ -23,10 +24,12 @@ export default function Dashboard({
     periode,
     stats,
     recentTrips,
+    filters,
 }: {
     periode: string;
     stats: Stats;
     recentTrips: Trip[];
+    filters: { from?: string; to?: string };
 }) {
     const cards = [
         ['Trip', formatNumber(stats.trips)],
@@ -40,6 +43,14 @@ export default function Dashboard({
 
     return (
         <PageShell title="Dashboard" description={`Ringkasan ${periode}`}>
+            <FilterBar
+                path={dashboard()}
+                initial={filters}
+                fields={[
+                    { name: 'from', label: 'Dari tanggal', type: 'date' },
+                    { name: 'to', label: 'Sampai tanggal', type: 'date' },
+                ]}
+            />
             <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
                 {cards.map(([label, value]) => (
                     <Card key={label}>
@@ -55,7 +66,7 @@ export default function Dashboard({
                 ))}
             </div>
 
-            <h2 className="text-base font-medium">Trip terbaru</h2>
+            <h2 className="text-base font-medium mt-4">Trip terbaru</h2>
             <DataTable>
                 <thead>
                     <tr>
