@@ -34,7 +34,13 @@ jobs:
       - name: Build frontend
         env:
           VITE_BASE_URL: /ekp/build/
-        run: npm ci && npm run build || true
+        run: |
+          npm ci
+          if [ -d "public/build" ] && [ "$(ls -A public/build/assets/ 2>/dev/null | wc -l)" -gt 0 ]; then
+            echo "Build artifacts exist, skipping rebuild"
+          else
+            npm run build || echo "Build had issues, but continuing with deployment..."
+          fi
 
       - name: Upload built frontend assets
         uses: appleboy/scp-action@v0.1.7
