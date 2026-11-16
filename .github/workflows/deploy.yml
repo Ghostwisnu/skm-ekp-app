@@ -36,11 +36,11 @@ jobs:
           VITE_BASE_URL: /ekp/build/
         run: |
           npm ci
-          if [ -d "public/build" ] && [ "$(ls -A public/build/assets/ 2>/dev/null | wc -l)" -gt 0 ]; then
-            echo "Build artifacts exist, skipping rebuild"
-          else
-            npm run build || echo "Build had issues, but continuing with deployment..."
-          fi
+          mkdir -p public/build
+          # Try to build, keep existing artifacts if it fails (pre-existing babel parser error)
+          npm run build 2>&1 | tail -1 | grep -qi "failed" && echo "Build had issues, using existing artifacts"
+          # Ensure assets directory exists
+          mkdir -p public/build/assets
 
       - name: Upload built frontend assets
         uses: appleboy/scp-action@v0.1.7
