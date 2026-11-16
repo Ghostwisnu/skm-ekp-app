@@ -287,17 +287,20 @@ export default function DailyCostIndex({
                             <Td right>{formatRupiah(cost.uang_jalan)}</Td>
                             <Td>{cost.catatan || '-'}</Td>
                             <Td>
-                                {cost.extras && cost.extras.length > 0 ? (
-                                    <ul className="list-disc list-inside text-xs">
-                                        {cost.extras.map((extra, idx) => (
-                                            <li key={idx}>
-                                                {extra.nama_biaya}: {formatRupiah(extra.nominal)}
-                                            </li>
-                                        ))}
-                                    </ul>
-                                ) : (
-                                    <span className="text-gray-400 text-xs">-</span>
-                                )
+                                {(() => {
+                                    if (cost.extras && cost.extras.length > 0) {
+                                        return (
+                                            <ul className="list-disc list-inside text-xs">
+                                                {cost.extras.map((extra, idx) => (
+                                                    <li key={idx}>
+                                                        {extra.nama_biaya}: {formatRupiah(extra.nominal)}
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        );
+                                    }
+                                    return <span className="text-gray-400 text-xs">-</span>;
+                                })()}
                             </Td>
                             <Td>
                                 <Button
