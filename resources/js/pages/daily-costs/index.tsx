@@ -32,6 +32,7 @@ type CostForm = {
     no_plat: string;
     no_surat_jalan: string;
     uang_jalan: string;
+    catatan: string;
     extras: ExtraItem[];
 };
 
@@ -57,6 +58,7 @@ function CostDialog({
         no_plat: cost?.no_plat ?? '',
         no_surat_jalan: cost?.no_surat_jalan ?? '',
         uang_jalan: String(cost?.uang_jalan ?? 0),
+        catatan: cost?.catatan ?? '',
         extras: cost?.extras?.map((e) => ({
             nama_biaya: e.nama_biaya,
             nominal: String(e.nominal ?? 0),
@@ -157,6 +159,14 @@ function CostDialog({
                             value={form.data.uang_jalan}
                             onChange={(e) =>
                                 form.setData('uang_jalan', e.target.value)
+                            }
+                        />
+                    </Field>
+                    <Field label="Keterangan" error={errors.catatan}>
+                        <Input
+                            value={form.data.catatan}
+                            onChange={(e) =>
+                                form.setData('catatan', e.target.value)
                             }
                         />
                     </Field>
@@ -263,18 +273,19 @@ export default function DailyCostIndex({
                         <Th>Plat</Th>
                         <Th>No. Surat Jalan</Th>
                         <Th right>Uang Jalan</Th>
-                        <Th>Keterangan Biaya</Th>
+                        <Th>Keterangan</Th>
                         <Th />
                     </tr>
                 </thead>
                 <tbody>
-                    {dailyCosts.data.length === 0 && <EmptyRow colSpan={6} />}
+                    {dailyCosts.data.length === 0 && <EmptyRow colSpan={7} />}
                     {dailyCosts.data.map((cost) => (
                         <tr key={cost.id}>
                             <Td>{formatDate(cost.tanggal)}</Td>
                             <Td>{cost.no_plat}</Td>
                             <Td>{cost.no_surat_jalan}</Td>
                             <Td right>{formatRupiah(cost.uang_jalan)}</Td>
+                            <Td>{cost.catatan || '-'}</Td>
                             <Td>
                                 {cost.extras && cost.extras.length > 0 ? (
                                     <ul className="list-disc list-inside text-xs">
@@ -286,7 +297,7 @@ export default function DailyCostIndex({
                                     </ul>
                                 ) : (
                                     <span className="text-gray-400 text-xs">-</span>
-                                )}
+                                )
                             </Td>
                             <Td>
                                 <Button

@@ -14,8 +14,9 @@ use Illuminate\Support\Carbon;
  * @property string $no_plat
  * @property string $no_surat_jalan
  * @property int $uang_jalan
+ * @property string $catatan
  */
-#[Fillable(['tanggal', 'no_plat', 'no_surat_jalan', 'uang_jalan'])]
+#[Fillable(['tanggal', 'no_plat', 'no_surat_jalan', 'uang_jalan', 'catatan'])]
 class DailyCost extends Model
 {
     /** @use HasFactory<DailyCostFactory> */

@@ -46,6 +46,7 @@ class DailyCostController extends Controller
             'no_plat' => $data['no_plat'],
             'no_surat_jalan' => $data['no_surat_jalan'],
             'uang_jalan' => $data['uang_jalan'],
+            'catatan' => $data['catatan'] ?? null,
         ]);
 
         // Save extras if provided
@@ -74,6 +75,7 @@ class DailyCostController extends Controller
             'no_plat' => $data['no_plat'],
             'no_surat_jalan' => $data['no_surat_jalan'],
             'uang_jalan' => $data['uang_jalan'],
+            'catatan' => $data['catatan'] ?? null,
         ]);
 
         // Sync extras: remove old, add new
