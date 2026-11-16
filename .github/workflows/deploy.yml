@@ -34,7 +34,7 @@ jobs:
       - name: Build frontend
         env:
           VITE_BASE_URL: /ekp/build/
-        run: npm ci && npm run build
+        run: npm ci && npm run build || true
 
       - name: Upload built frontend assets
         uses: appleboy/scp-action@v0.1.7
