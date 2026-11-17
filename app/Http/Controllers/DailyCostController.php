@@ -49,6 +49,12 @@ class DailyCostController extends Controller
             'catatan' => $data['catatan'] ?? null,
         ]);
 
+        // Auto-create or update Vehicle record (similar to Trip controller)
+        $vehicle = Vehicle::query()->firstOrCreate(
+            ['plat' => $data['no_plat']],
+            ['plat' => $data['no_plat']]
+        );
+
         // Save extras if provided
         if (!empty($data['extras'])) {
             $extras = collect($data['extras'])
@@ -77,6 +83,12 @@ class DailyCostController extends Controller
             'uang_jalan' => $data['uang_jalan'],
             'catatan' => $data['catatan'] ?? null,
         ]);
+
+        // Auto-create or update Vehicle record (similar to Trip controller)
+        $vehicle = Vehicle::query()->firstOrCreate(
+            ['plat' => $data['no_plat']],
+            ['plat' => $data['no_plat']]
+        );
 
         // Sync extras: remove old, add new
         $dailyCost->extras()->delete();
