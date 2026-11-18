@@ -68,8 +68,8 @@ export default function MonthlyReport({
                     </thead>
                     <tbody>
                         {days.length === 0 && <EmptyRow colSpan={5} />}
-                        {days.map((day) => (
-                            <tr key={day.tanggal}>
+                        {days.map((day, index) => (
+                            <tr key={`${day.tanggal}-${index}`}>
                                 <Td>{day.tanggal}</Td>
                                 <Td right>{formatNumber(day.trip)}</Td>
                                 <Td right>{formatRupiah(day.biaya_harian)}</Td>
