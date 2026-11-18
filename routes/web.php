@@ -55,6 +55,7 @@ Route::middleware('auth')->group(function () {
         Route::put('navigation-menus/{id}', [NavigationMenuController::class, 'update'])->name('navigation.menus.update');
         Route::delete('navigation-menus/{id}', [NavigationMenuController::class, 'destroy'])->name('navigation.menus.destroy');
         Route::post('navigation-menus/seed-defaults', [NavigationMenuController::class, 'seedDefaults'])->name('navigation.menus.seed-defaults');
+        Route::post('navigation-menus/reseed-defaults', [NavigationMenuController::class, 'reseedDefaults'])->name('navigation.menus.reseed-defaults');
 
         // Role Management
         Route::resource('roles', RoleController::class)->only(['index', 'store', 'update', 'destroy']);

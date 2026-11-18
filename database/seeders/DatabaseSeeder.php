@@ -3,10 +3,10 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Seeders\DatabaseSeeder as BaseDatabaseSeeder;
+use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Role;
 
-class DatabaseSeeder extends BaseDatabaseSeeder
+class DatabaseSeeder extends Seeder
 {
     /**
      * Seed the application's database.
@@ -18,6 +18,7 @@ class DatabaseSeeder extends BaseDatabaseSeeder
         $this->call([
             RoleSeeder::class,
             NavigationMenuSeeder::class,
+            MonthlyReportMenuSeeder::class,
         ]);
 
         $this->seedUsers();

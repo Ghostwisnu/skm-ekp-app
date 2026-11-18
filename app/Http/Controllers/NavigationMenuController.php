@@ -143,6 +143,16 @@ class NavigationMenuController extends Controller
         return back()->with('flash', ['type' => 'success', 'message' => 'Menu default telah dibuat!']);
     }
 
+    /**
+     * Re-seed missing menus idempotently (safe to re-run).
+     */
+    public function reseedDefaults(): RedirectResponse
+    {
+        $this->createDefaultMenus();
+
+        return back()->with('flash', ['type' => 'success', 'message' => 'Menu default telah diperbarui!']);
+    }
+
     private function createDefaultMenus(): void
     {
         $menus = [
@@ -161,14 +171,16 @@ class NavigationMenuController extends Controller
         ];
 
         foreach ($menus as $menuData) {
-            $menu = NavigationMenu::create([
-                'name' => $menuData['name'],
-                'route' => $menuData['route'],
-                'icon' => $menuData['icon'],
-                'sort_order' => $menuData['sort_order'],
-                'is_active' => true,
-                'parent_id' => null,
-            ]);
+            $menu = NavigationMenu::updateOrCreate(
+                ['name' => $menuData['name']],
+                [
+                    'route' => $menuData['route'],
+                    'icon' => $menuData['icon'],
+                    'sort_order' => $menuData['sort_order'],
+                    'is_active' => true,
+                    'parent_id' => null,
+                ]
+            );
 
             $roles = \Spatie\Permission\Models\Role::whereIn('name', $menuData['roles'])->get();
             $menu->roles()->sync($roles->pluck('id')->toArray());

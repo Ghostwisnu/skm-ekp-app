@@ -126,6 +126,12 @@ export default function NavigationMenus({
                         <Button type="submit" variant="outline">🌱 Seed Menu Default</Button>
                     </form>
                 )}
+                {allMenus.length > 0 && (
+                    <form method="POST" action={`${basePath}/admin/navigation-menus/reseed-defaults`}>
+                        <input type="hidden" name="_token" value={(document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content ?? ''} />
+                        <Button type="submit" variant="outline" size="sm">🔄 Re-seed Menu</Button>
+                    </form>
+                )}
             </div>
 
             <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'menus' | 'roles')} className="space-y-4">
@@ -300,7 +306,7 @@ export default function NavigationMenus({
                                 {allMenus.map((menu) => (
                                     <tr key={menu.id} className="border-b last:border-0">
                                         <td className="px-4 py-2 font-medium">{menu.name}</td>
-                                        {[roles[0], roles[1], roles[2]].map((role) => (
+                                        {roles.map((role) => (
                                             <td key={role.id} className="px-4 py-2 text-center">
                                                 <Checkbox
                                                     checked={menu.role_ids.includes(role.id)}

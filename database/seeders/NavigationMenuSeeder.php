@@ -3,7 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\NavigationMenu;
-use Illuminate\Database\Seeders;
+use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Role;
 
 class NavigationMenuSeeder extends Seeder
@@ -27,9 +27,9 @@ class NavigationMenuSeeder extends Seeder
 
         foreach ($menus as $menuData) {
             $menu = NavigationMenu::updateOrCreate(
-                ['route' => $menuData['route']],
+                ['name' => $menuData['name']],
                 [
-                    'name' => $menuData['name'],
+                    'route' => $menuData['route'],
                     'icon' => $menuData['icon'],
                     'sort_order' => $menuData['sort_order'],
                     'is_active' => true,
