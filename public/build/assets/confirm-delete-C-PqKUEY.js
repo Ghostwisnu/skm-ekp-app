@@ -1,1 +1,0 @@
-import{m as e}from"./jsx-runtime-qz7Egntc.js";function t(t,n=`Hapus data ini?`){window.confirm(n)&&e.delete(t,{preserveScroll:!0})}export{t};
