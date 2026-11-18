@@ -153,10 +153,11 @@ class NavigationMenuController extends Controller
             ['name' => 'Kendaraan', 'route' => '/vehicles', 'icon' => 'Truck', 'sort_order' => 5, 'roles' => ['admin', 'operator', 'keuangan']],
             ['name' => 'Invoice', 'route' => '/invoices', 'icon' => 'Receipt', 'sort_order' => 6, 'roles' => ['admin', 'keuangan']],
             ['name' => 'Laporan Plat', 'route' => '/reports/vehicles', 'icon' => 'BarChart3', 'sort_order' => 7, 'roles' => ['admin', 'keuangan']],
-            ['name' => 'Admin', 'route' => '/admin/users', 'icon' => 'Settings', 'sort_order' => 8, 'roles' => ['admin']],
-            ['name' => 'Pengguna & Pengaturan', 'route' => '/admin/users', 'icon' => null, 'sort_order' => 9, 'roles' => ['admin']],
-            ['name' => 'Manajemen Menu', 'route' => '/admin/navigation-menus', 'icon' => null, 'sort_order' => 10, 'roles' => ['admin']],
-            ['name' => 'Kelola Role', 'route' => '/admin/roles', 'icon' => null, 'sort_order' => 11, 'roles' => ['admin']],
+            ['name' => 'Laporan Bulanan', 'route' => '/reports/monthly', 'icon' => 'Calendar', 'sort_order' => 8, 'roles' => ['admin', 'keuangan']],
+            ['name' => 'Admin', 'route' => '/admin/users', 'icon' => 'Settings', 'sort_order' => 9, 'roles' => ['admin']],
+            ['name' => 'Pengguna & Pengaturan', 'route' => '/admin/users', 'icon' => null, 'sort_order' => 10, 'roles' => ['admin']],
+            ['name' => 'Manajemen Menu', 'route' => '/admin/navigation-menus', 'icon' => null, 'sort_order' => 11, 'roles' => ['admin']],
+            ['name' => 'Kelola Role', 'route' => '/admin/roles', 'icon' => null, 'sort_order' => 12, 'roles' => ['admin']],
         ];
 
         foreach ($menus as $menuData) {

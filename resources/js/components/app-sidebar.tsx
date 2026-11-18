@@ -2,6 +2,7 @@ import { Link, usePage } from '@inertiajs/react';
 import {
     BarChart3,
     Building2,
+    Calendar,
     LayoutGrid,
     Receipt,
     Settings,
@@ -32,7 +33,7 @@ const ICON_MAP: Record<string, React.ElementType> = {
     BarChart3,
     Settings,
     Users: Settings,
-    Calendar: LayoutGrid,
+    Calendar,
     FileText: Receipt,
     Package: LayoutGrid,
     MapPin: LayoutGrid,
