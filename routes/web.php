@@ -40,6 +40,8 @@ Route::middleware('auth')->group(function () {
         Route::get('reports/vehicles', [ReportController::class, 'vehicles'])->name('reports.vehicles');
         Route::get('reports/vehicles/pdf', [ReportController::class, 'pdf'])->name('reports.vehicles.pdf');
         Route::get('reports/vehicles/excel', [ReportController::class, 'excel'])->name('reports.vehicles.excel');
+
+        Route::get('reports/monthly', [ReportController::class, 'monthly'])->name('reports.monthly');
     });
 
     Route::middleware('role:admin')->prefix('admin')->group(function () {

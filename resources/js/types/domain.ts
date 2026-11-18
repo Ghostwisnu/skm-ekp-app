@@ -133,6 +133,28 @@ export type VehicleReportRow = {
     margin: number;
 };
 
+export type MonthlyReportDay = {
+    tanggal: string;
+    trip: number;
+    biaya_harian: number;
+    invoice: number;
+    profit: number;
+};
+
+export type MonthlyReportSummary = {
+    total_trip: number;
+    total_biaya: number;
+    total_invoice: number;
+    total_profit: number;
+};
+
+export type MonthlyReportData = {
+    days: MonthlyReportDay[];
+    summary: MonthlyReportSummary;
+    month: number;
+    year: number;
+};
+
 export type NavMenuItem = {
     id: number;
     name: string;

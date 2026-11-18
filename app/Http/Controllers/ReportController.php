@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Exports\VehiclePerformanceExport;
 use App\Models\Vehicle;
+use App\Services\MonthlyReport;
 use App\Services\VehiclePerformanceReport;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
@@ -15,7 +16,10 @@ use Symfony\Component\HttpFoundation\Response as HttpResponse;
 
 class ReportController extends Controller
 {
-    public function __construct(private readonly VehiclePerformanceReport $report) {}
+    public function __construct(
+        private readonly VehiclePerformanceReport $report,
+        private readonly MonthlyReport $monthlyReport
+    ) {}
 
     public function vehicles(Request $request): Response
     {
@@ -23,6 +27,17 @@ class ReportController extends Controller
 
         return Inertia::render('reports/vehicles', [
             'rows' => $this->report->rows($filters),
+            'filters' => (object) $filters,
+            'vehicles' => Vehicle::query()->orderBy('plat')->get(['id', 'plat']),
+        ]);
+    }
+
+    public function monthly(Request $request): Response
+    {
+        $filters = $request->only(['from', 'to', 'vehicle_id', 'client_id', 'month', 'year']);
+
+        return Inertia::render('reports/monthly', [
+            'data' => $this->monthlyReport->dailyBreakdown($filters),
             'filters' => (object) $filters,
             'vehicles' => Vehicle::query()->orderBy('plat')->get(['id', 'plat']),
         ]);
