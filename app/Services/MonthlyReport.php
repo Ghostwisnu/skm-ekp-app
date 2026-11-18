@@ -49,13 +49,16 @@ class MonthlyReport
         $dates = [];
         $current = $fromDate->copy();
         while ($current->lte($toDate)) {
-            $dates[$current->toDateString()] = [
-                'tanggal' => $current->toDateString(),
-                'trip' => 0,
-                'biaya_harian' => 0,
-                'invoice' => 0,
-                'profit' => 0,
-            ];
+            $dateStr = $current->format('Y-m-d');
+            if (!isset($dates[$dateStr])) {
+                $dates[$dateStr] = [
+                    'tanggal' => $dateStr,
+                    'trip' => 0,
+                    'biaya_harian' => 0,
+                    'invoice' => 0,
+                    'profit' => 0,
+                ];
+            }
             $current->addDay();
         }
 
