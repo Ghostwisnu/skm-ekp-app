@@ -49,7 +49,10 @@ class DashboardController extends Controller
                     ->when($from, fn($q) => $q->whereDate('trips.tanggal', '>=', Carbon::parse($from)->startOfDay()))
                     ->when($to, fn($q) => $q->whereDate('trips.tanggal', '<=', Carbon::parse($to)->endOfDay()))
                     ->sum('trip_items.qty_barang'),
-                'biaya' => (int) (clone $dailyCostQuery)->sum('uang_jalan'),
+                'biaya' => (int) (clone $dailyCostQuery)
+                    ->with('extras')
+                    ->get()
+                    ->sum(fn ($dc) => $dc->uang_jalan + $dc->extras->sum('nominal')),
                 'invoice_count' => (clone $invoiceQuery)->count(),
                 'invoice_total' => (int) (clone $invoiceQuery)->sum('total'),
             ],
