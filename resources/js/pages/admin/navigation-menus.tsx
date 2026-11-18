@@ -90,11 +90,11 @@ export default function NavigationMenus({
 
     const submit = () => {
         if (form.data.id) {
-            form.put(`/admin/navigation-menus/${form.data.id}`, {
+            form.put(`${basePath}/admin/navigation-menus/${form.data.id}`, {
                 onSuccess: () => { setEditingMenu(null); },
             });
         } else {
-            form.post('/admin/navigation-menus', {
+            form.post(`${basePath}/admin/navigation-menus`, {
                 onSuccess: () => { setEditingMenu(null); },
             });
         }
@@ -323,7 +323,7 @@ export default function NavigationMenus({
                                                                 ? menu.role_ids.filter((r) => r !== role.id)
                                                                 : [...menu.role_ids, role.id],
                                                         });
-                                                        form.put(`/admin/navigation-menus/${menu.id}`, {});
+                                                        form.put(`${basePath}/admin/navigation-menus/${menu.id}`, {});
                                                     }}
                                                 />
                                             </td>
