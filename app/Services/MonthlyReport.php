@@ -98,6 +98,8 @@ class MonthlyReport
             if (isset($dates[$date])) {
                 $dates[$date]['trip'] += 1;
                 $dates[$date]['invoice'] += (int) $trip->nilai_invoice;
+            } else {
+                // Date not in range, skip
             }
         }
 
@@ -122,6 +124,7 @@ class MonthlyReport
         foreach ($dates as $date => &$data) {
             $data['profit'] = $data['invoice'] - $data['biaya_harian'];
         }
+        unset($data);
 
         // Calculate summary
         $summary = [
