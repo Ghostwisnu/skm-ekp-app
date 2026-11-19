@@ -42,38 +42,38 @@ login.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     method: 'head',
 })
 
-/**
- * @see \Laravel\Fortify\Http\Controllers\AuthenticatedSessionController::store
- * @see vendor/laravel/fortify/src/Http/Controllers/AuthenticatedSessionController.php:74
+    /**
+* @see \Laravel\Fortify\Http\Controllers\AuthenticatedSessionController::login
+ * @see vendor/laravel/fortify/src/Http/Controllers/AuthenticatedSessionController.php:47
  * @route '/ekp/login'
  */
-export const loginPost = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
-    url: login.url(options),
-    method: 'post',
-})
-
-loginPost.definition = {
-    methods: ["post"],
-    url: '/ekp/login',
-} satisfies RouteDefinition<["post"]>
-
-loginPost.url = (options?: RouteQueryOptions) => {
-    return loginPost.definition.url + queryParams(options)
-}
-
-loginPost.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
-    url: loginPost.url(options),
-    method: 'post',
-})
-
-    const loginForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
-        action: loginPost.url(options),
-        method: 'post',
+    const loginForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+        action: login.url(options),
+        method: 'get',
     })
 
-        loginForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
-            action: loginPost.url(options),
-            method: 'post',
+            /**
+* @see \Laravel\Fortify\Http\Controllers\AuthenticatedSessionController::login
+ * @see vendor/laravel/fortify/src/Http/Controllers/AuthenticatedSessionController.php:47
+ * @route '/ekp/login'
+ */
+        loginForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+            action: login.url(options),
+            method: 'get',
+        })
+            /**
+* @see \Laravel\Fortify\Http\Controllers\AuthenticatedSessionController::login
+ * @see vendor/laravel/fortify/src/Http/Controllers/AuthenticatedSessionController.php:47
+ * @route '/ekp/login'
+ */
+        loginForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+            action: login.url({
+                        [options?.mergeQuery ? 'mergeQuery' : 'query']: {
+                            _method: 'HEAD',
+                            ...(options?.query ?? options?.mergeQuery ?? {}),
+                        }
+                    }),
+            method: 'get',
         })
     
     login.form = loginForm
