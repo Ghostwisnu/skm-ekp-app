@@ -1,6 +1,5 @@
 <?php
 
-use App\Enums\Role;
 use App\Models\User;
 
 beforeEach(function () {
@@ -10,15 +9,15 @@ beforeEach(function () {
 
 test('admin creates a user with a role', function () {
     $this->post('/admin/users', [
-        'name' => 'Budi', 'email' => 'budi@example.com', 'role' => 'keuangan', 'password' => 'password-123',
+        'name' => 'Budi', 'email' => 'budi@example.com', 'role' => 'keuangan', 'password' => 'Password123',
     ])->assertRedirect();
 
-    expect(User::where('email', 'budi@example.com')->first()->role)->toBe(Role::Keuangan);
+    expect(User::where('email', 'budi@example.com')->first()->hasRole('keuangan'))->toBeTrue();
 });
 
 test('invalid role is rejected', function () {
     $this->post('/admin/users', [
-        'name' => 'Budi', 'email' => 'budi@example.com', 'role' => 'root', 'password' => 'password-123',
+        'name' => 'Budi', 'email' => 'budi@example.com', 'role' => 'root', 'password' => 'Password123',
     ])->assertSessionHasErrors('role');
 });
 
@@ -30,7 +29,7 @@ test('password is optional when updating and admin cannot delete self', function
         'name' => 'Baru', 'email' => $user->email, 'role' => 'admin', 'password' => '',
     ])->assertRedirect();
 
-    expect($user->fresh()->role)->toBe(Role::Admin)->and($user->fresh()->password)->toBe($hash);
+    expect($user->fresh()->hasRole('admin'))->toBeTrue()->and($user->fresh()->password)->toBe($hash);
 
     $this->delete("/admin/users/{$this->admin->id}")->assertRedirect();
     $this->assertModelExists($this->admin);

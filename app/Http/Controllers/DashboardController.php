@@ -46,8 +46,8 @@ class DashboardController extends Controller
                 'trips' => (clone $tripQuery)->count(),
                 'jumlah_barang' => (float) (clone $tripItemQuery)
                     ->join('trips', 'trip_items.trip_id', '=', 'trips.id')
-                    ->when($from, fn($q) => $q->whereDate('trips.tanggal', '>=', Carbon::parse($from)->startOfDay()))
-                    ->when($to, fn($q) => $q->whereDate('trips.tanggal', '<=', Carbon::parse($to)->endOfDay()))
+                    ->when($from, fn ($q) => $q->whereDate('trips.tanggal', '>=', Carbon::parse($from)->startOfDay()))
+                    ->when($to, fn ($q) => $q->whereDate('trips.tanggal', '<=', Carbon::parse($to)->endOfDay()))
                     ->sum('trip_items.qty_barang'),
                 'biaya' => (int) (clone $dailyCostQuery)
                     ->with('extras')
@@ -68,14 +68,15 @@ class DashboardController extends Controller
     private function buildPeriodeString(?string $from, ?string $to): string
     {
         if ($from && $to) {
-            return Carbon::parse($from)->format('d M Y') . ' - ' . Carbon::parse($to)->format('d M Y');
+            return Carbon::parse($from)->format('d M Y').' - '.Carbon::parse($to)->format('d M Y');
         }
         if ($from) {
-            return 'Mulai ' . Carbon::parse($from)->format('d M Y');
+            return 'Mulai '.Carbon::parse($from)->format('d M Y');
         }
         if ($to) {
-            return 'Sampai ' . Carbon::parse($to)->format('d M Y');
+            return 'Sampai '.Carbon::parse($to)->format('d M Y');
         }
+
         return 'Semua data';
     }
 }

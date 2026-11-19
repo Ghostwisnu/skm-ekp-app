@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\NavigationMenu;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -29,7 +30,7 @@ class NavigationMenuController extends Controller
     }
 
     /**
-     * @param  \Illuminate\Database\Eloquent\Collection<int, NavigationMenu>  $menus
+     * @param  Collection<int, NavigationMenu>  $menus
      * @return array<int, array{id: int, name: string, route: ?string, icon: ?string, sort_order: int, is_active: bool, role_ids: int[], children: array}>
      */
     private function buildTree($menus): array
@@ -182,7 +183,7 @@ class NavigationMenuController extends Controller
                 ]
             );
 
-            $roles = \Spatie\Permission\Models\Role::whereIn('name', $menuData['roles'])->get();
+            $roles = Role::whereIn('name', $menuData['roles'])->get();
             $menu->roles()->sync($roles->pluck('id')->toArray());
         }
     }

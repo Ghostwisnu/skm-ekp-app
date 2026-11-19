@@ -14,7 +14,11 @@ class InvoiceRequest extends FormRequest
     {
         return [
             'client_id' => ['required', 'exists:clients,id'],
-            'destination_client_id' => ['nullable', 'integer', 'Rule::exists(\'clients\', \'id\')'],
+            'destination_client_id' => ['nullable', 'integer', Rule::exists('clients', 'id'), function ($attribute, $value, $fail) {
+                if ($value !== null && $value === $this->input('client_id')) {
+                    $fail('Client dan destination client harus berbeda.');
+                }
+            }],
             'tanggal_awal' => ['required', 'date'],
             'tanggal_akhir' => ['required', 'date', 'after_or_equal:tanggal_awal'],
             'no_invoice' => ['required', 'string', 'max:255', 'unique:invoices,no_invoice'],

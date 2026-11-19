@@ -64,7 +64,17 @@ class TripController extends Controller
                 $request->validated('client_name'),
             );
             $data['client_id'] = $client->id;
-            $data['destination_client_id'] = $category === 'outsourcing' ? null : (isset($data['destination_client_id']) ? (int) $data['destination_client_id'] : null);
+
+            // Resolve destination client from ID or name
+            if ($category !== 'outsourcing') {
+                $destinationClient = $this->resolveClient(
+                    isset($data['destination_client_id']) ? (int) $data['destination_client_id'] : null,
+                    $request->validated('destination_client_name'),
+                );
+                $data['destination_client_id'] = $destinationClient->id;
+            } else {
+                $data['destination_client_id'] = null;
+            }
 
             $vehicle = Vehicle::query()->firstOrCreate(['plat' => $request->validated('plat')]);
             $data['vehicle_id'] = $vehicle->id;
@@ -119,7 +129,17 @@ class TripController extends Controller
                 $request->validated('client_name'),
             );
             $data['client_id'] = $client->id;
-            $data['destination_client_id'] = $category === 'outsourcing' ? null : (isset($data['destination_client_id']) ? (int) $data['destination_client_id'] : null);
+
+            // Resolve destination client from ID or name
+            if ($category !== 'outsourcing') {
+                $destinationClient = $this->resolveClient(
+                    isset($data['destination_client_id']) ? (int) $data['destination_client_id'] : null,
+                    $request->validated('destination_client_name'),
+                );
+                $data['destination_client_id'] = $destinationClient->id;
+            } else {
+                $data['destination_client_id'] = null;
+            }
 
             $trip->update($data);
             $trip->items()->delete();
@@ -182,8 +202,6 @@ class TripController extends Controller
     }
 
     /**
-     * @param  int|null  $destinationClientId
-     * @param  string|null  $tujuanText
      * @param  list<array{client_good_id: int|null, jenis_barang: string, qty_barang: int|float|string, total_harga?: int|string|null}>  $items
      * @return list<array<string, int|float|string|null>>
      */
@@ -191,9 +209,9 @@ class TripController extends Controller
     {
         $sourceClient = Client::query()->findOrFail($clientId);
         $route = match ($category) {
-            'outsourcing' => $sourceClient->nama . ' → ' . ($tujuanText ?? '-'),
+            'outsourcing' => $sourceClient->nama.' → '.($tujuanText ?? '-'),
             default => $destinationClientId !== null
-                ? "{$sourceClient->nama} → " . Client::query()->findOrFail($destinationClientId)->nama
+                ? "{$sourceClient->nama} → ".Client::query()->findOrFail($destinationClientId)->nama
                 : $sourceClient->nama,
         };
 

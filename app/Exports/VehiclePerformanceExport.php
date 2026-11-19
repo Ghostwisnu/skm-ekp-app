@@ -31,7 +31,7 @@ class VehiclePerformanceExport implements FromArray, WithHeadings
             $row['trip'],
             $row['jumlah_barang'],
             $row['nilai_invoice'],
-            $row['biaya'],
+            $row['total_biaya'],
             $row['margin'],
         ])->values()->all();
     }

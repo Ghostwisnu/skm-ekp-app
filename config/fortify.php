@@ -45,7 +45,7 @@ return [
     |
     */
 
-    'username' => 'name',
+    'username' => 'email',
 
     'email' => 'email',
 
@@ -77,10 +77,10 @@ return [
     'redirects' => [
         // Use relative paths so they resolve correctly regardless of APP_URL
         // The frontend interceptor handles subdirectory prefixing automatically
-        'login' => '/login',
+        'login' => '/dashboard',
         'register' => '/register',
         'password-reset' => '/forgot-password',
-        'logout' => '/logout',
+        'logout' => '/',
     ],
 
     /*
@@ -169,7 +169,7 @@ return [
     */
 
     'features' => [
-        Features::registration(),
+        // Features::registration(), // Disabled - registration is not allowed
         Features::resetPasswords(),
         // Features::emailVerification(),
         Features::twoFactorAuthentication([

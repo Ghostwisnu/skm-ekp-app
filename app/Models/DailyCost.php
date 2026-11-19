@@ -15,10 +15,16 @@ use Illuminate\Support\Carbon;
  * @property string $no_surat_jalan
  * @property int $uang_jalan
  * @property string $catatan
+ * @property int $total
  */
 #[Fillable(['tanggal', 'no_plat', 'no_surat_jalan', 'uang_jalan', 'catatan'])]
 class DailyCost extends Model
 {
+    /**
+     * The components that make up the daily cost total.
+     */
+    public const COMPONENTS = ['pak_bensin', 'minyak', 'obongan', 'uang_makan', 'uang_surat', 'komponen_lain_1', 'komponen_lain_2'];
+
     /** @use HasFactory<DailyCostFactory> */
     use HasFactory;
 
@@ -31,6 +37,14 @@ class DailyCost extends Model
             'tanggal' => 'date:Y-m-d',
             'uang_jalan' => 'integer',
         ];
+    }
+
+    /**
+     * Get the total daily cost including extras.
+     */
+    public function getTotalAttribute(): int
+    {
+        return $this->uang_jalan + $this->extras->sum('nominal');
     }
 
     /**

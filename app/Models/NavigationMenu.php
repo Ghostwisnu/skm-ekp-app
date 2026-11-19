@@ -2,18 +2,21 @@
 
 namespace App\Models;
 
+use App\Observers\NavigationMenuObserver;
+use Database\Factories\NavigationMenuFactory;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Collection;
 use Spatie\Permission\Models\Role;
 
-#[ObservedBy([\App\Observers\NavigationMenuObserver::class])]
+#[ObservedBy([NavigationMenuObserver::class])]
 class NavigationMenu extends Model
 {
-    /** @use HasFactory<\Database\Factories\NavigationMenuFactory> */
+    /** @use HasFactory<NavigationMenuFactory> */
     use HasFactory;
 
     protected $fillable = [
@@ -61,10 +64,10 @@ class NavigationMenu extends Model
     /**
      * Get all accessible menu items for a user as a flat array (no nesting).
      */
-    public static function accessibleMenus(User $user): \Illuminate\Support\Collection
+    public static function accessibleMenus(User $user): Collection
     {
         $role = $user->getRoleNames()->first();
-        if (!$role) {
+        if (! $role) {
             return collect();
         }
 
@@ -74,15 +77,15 @@ class NavigationMenu extends Model
             ->whereNull('parent_id')
             ->orderBy('sort_order')
             ->get()
-            ->filter(fn(self $menu) => $menu->canAccess($role))
-            ->map(fn(self $menu) => [
-                'id'          => $menu->id,
-                'name'        => $menu->name,
-                'route'       => $menu->route,
-                'icon'        => $menu->icon,
-                'sortOrder'   => $menu->sort_order,
-                'isActive'    => $menu->is_active,
-                'children'    => collect(),
+            ->filter(fn (self $menu) => $menu->canAccess($role))
+            ->map(fn (self $menu) => [
+                'id' => $menu->id,
+                'name' => $menu->name,
+                'route' => $menu->route,
+                'icon' => $menu->icon,
+                'sortOrder' => $menu->sort_order,
+                'isActive' => $menu->is_active,
+                'children' => collect(),
             ]);
     }
 }

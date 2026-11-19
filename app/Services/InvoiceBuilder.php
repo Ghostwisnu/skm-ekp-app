@@ -14,7 +14,6 @@ use Illuminate\Validation\ValidationException;
 class InvoiceBuilder
 {
     /**
-     * @param  int|null  $destinationClientId
      * @return Collection<int, TripItem>
      */
     public function pendingItems(int $clientId, ?int $destinationClientId, string $from, string $to): Collection
@@ -61,7 +60,7 @@ class InvoiceBuilder
             }
         }
 
-        return DB::transaction(function () use ($data, $items, $creator): Invoice {
+        return DB::transaction(function () use ($data, $items, $creator, $destinationId): Invoice {
             $ppnPersen = (float) ($data['ppn_persen'] ?? 0);
             $pphPersen = (float) ($data['pph_persen'] ?? 0);
             $category = 'kontrak';

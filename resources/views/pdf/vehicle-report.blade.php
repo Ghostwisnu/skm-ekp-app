@@ -33,7 +33,7 @@
                     <td class="r">{{ $row['trip'] }}</td>
                     <td class="r">{{ number_format($row['jumlah_barang'], 2, ',', '.') }}</td>
                     <td class="r">Rp {{ number_format($row['nilai_invoice'], 0, ',', '.') }}</td>
-                    <td class="r">Rp {{ number_format($row['biaya'], 0, ',', '.') }}</td>
+                    <td class="r">Rp {{ number_format($row['total_biaya'], 0, ',', '.') }}</td>
                     <td class="r">Rp {{ number_format($row['margin'], 0, ',', '.') }}</td>
                 </tr>
             @endforeach

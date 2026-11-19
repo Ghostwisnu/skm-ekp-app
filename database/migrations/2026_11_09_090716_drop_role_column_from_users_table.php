@@ -2,8 +2,8 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
@@ -12,7 +12,7 @@ return new class extends Migration
         // Drop index first (MySQL requires this before dropping column)
         try {
             DB::statement('ALTER TABLE users DROP INDEX role');
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             // Index doesn't exist, continue
         }
 
@@ -21,7 +21,7 @@ return new class extends Migration
             Schema::table('users', function (Blueprint $table) {
                 $table->dropColumn('role');
             });
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             // Column doesn't exist, continue
         }
     }
@@ -29,7 +29,7 @@ return new class extends Migration
     public function down(): void
     {
         // Only add if not exists
-        if (!Schema::hasColumn('users', 'role')) {
+        if (! Schema::hasColumn('users', 'role')) {
             Schema::table('users', function (Blueprint $table) {
                 $table->string('role')->default('operator')->after('password')->index();
             });

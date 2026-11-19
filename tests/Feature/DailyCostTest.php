@@ -8,35 +8,57 @@ beforeEach(function () {
     $this->actingAs(User::factory()->operator()->create());
 });
 
-test('daily cost total is the plain sum of the seven components', function () {
-    $cost = DailyCost::factory()->make();
+test('daily cost total includes extras', function () {
+    $cost = DailyCost::factory()->create(['uang_jalan' => 500000]);
+    $cost->extras()->create(['nama_biaya' => 'fuel', 'nominal' => 50000]);
+    $cost->extras()->create(['nama_biaya' => 'toll', 'nominal' => 30000]);
 
-    expect($cost->total)->toBe(1150000);
+    expect($cost->fresh()->total)->toBe(580000);
 });
 
-test('daily costs are stored once per trip', function () {
+test('daily costs are created with required fields', function () {
     $trip = Trip::factory()->create();
-    $payload = ['trip_id' => $trip->id, ...array_fill_keys(DailyCost::COMPONENTS, 100)];
+    $payload = [
+        'tanggal' => now()->toDateString(),
+        'no_plat' => 'B 1234',
+        'no_surat_jalan' => 'SJ-TEST123',
+        'uang_jalan' => 100,
+    ];
 
     $this->post('/daily-costs', $payload)->assertRedirect();
-    $this->post('/daily-costs', [...$payload, 'uang_jalan_1' => 900])->assertRedirect();
+    $this->post('/daily-costs', [
+        'tanggal' => now()->toDateString(),
+        'no_plat' => 'B 5678',
+        'no_surat_jalan' => 'SJ-TEST124',
+        'uang_jalan' => 200,
+    ])->assertRedirect();
 
-    expect(DailyCost::count())->toBe(1)
-        ->and(DailyCost::first()->uang_jalan_1)->toBe(900);
+    expect(DailyCost::count())->toBe(2);
 });
 
-test('daily cost components must be non-negative integers', function () {
+test('daily cost extras must be non-negative integers', function () {
     $trip = Trip::factory()->create();
 
-    $this->post('/daily-costs', ['trip_id' => $trip->id, ...array_fill_keys(DailyCost::COMPONENTS, -1)])
-        ->assertSessionHasErrors(DailyCost::COMPONENTS);
+    $this->post('/daily-costs', [
+        'tanggal' => now()->toDateString(),
+        'no_plat' => 'B 1234',
+        'no_surat_jalan' => 'SJ-TEST123',
+        'uang_jalan' => 100,
+        'extras' => [
+            ['nama_biaya' => 'pak_bensin', 'nominal' => -1],
+        ],
+    ])->assertSessionHasErrors('extras.0.nominal');
 });
 
 test('a daily cost can be updated', function () {
-    $cost = DailyCost::factory()->create();
+    $cost = DailyCost::factory()->create(['uang_jalan' => 100]);
 
-    $this->put("/daily-costs/{$cost->id}", ['trip_id' => $cost->trip_id, ...array_fill_keys(DailyCost::COMPONENTS, 10)])
-        ->assertRedirect();
+    $this->put("/daily-costs/{$cost->id}", [
+        'tanggal' => now()->toDateString(),
+        'no_plat' => 'B 4321',
+        'no_surat_jalan' => 'SJ-UPDATED',
+        'uang_jalan' => 500,
+    ])->assertRedirect();
 
-    expect($cost->fresh()->total)->toBe(70);
+    expect($cost->fresh()->uang_jalan)->toBe(500);
 });

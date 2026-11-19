@@ -95,31 +95,31 @@ test('dashboard filters by date range', function () {
     ]);
 
     // Filter hanya hari ini
-    $this->get('/dashboard', ['from' => $today, 'to' => $today])
+    $this->get('/dashboard?from='.urlencode($today).'&to='.urlencode($today))
         ->assertInertia(fn ($page) => $page
             ->component('dashboard')
             ->where('stats.trips', 1)
             ->where('stats.jumlah_barang', 10)
             ->where('stats.biaya', 500)
-    );
+        );
 
     // Filter bulan lalu
-    $this->get('/dashboard', ['from' => $lastMonth, 'to' => $lastMonth])
+    $this->get('/dashboard?from='.urlencode($lastMonth).'&to='.urlencode($lastMonth))
         ->assertInertia(fn ($page) => $page
             ->component('dashboard')
             ->where('stats.trips', 1)
             ->where('stats.jumlah_barang', 20)
             ->where('stats.biaya', 300)
-    );
+        );
 
     // Filter dari bulan lalu sampai hari ini
-    $this->get('/dashboard', ['from' => $lastMonth, 'to' => $today])
+    $this->get('/dashboard?from='.urlencode($lastMonth).'&to='.urlencode($today))
         ->assertInertia(fn ($page) => $page
             ->component('dashboard')
             ->where('stats.trips', 2)
             ->where('stats.jumlah_barang', 30)
             ->where('stats.biaya', 800)
-    );
+        );
 });
 
 test('dashboard recent trips filter by date range', function () {
@@ -137,14 +137,14 @@ test('dashboard recent trips filter by date range', function () {
     ]);
 
     // Filter hanya hari ini
-    $this->get('/dashboard', ['from' => $today, 'to' => $today])
+    $this->get('/dashboard?from='.urlencode($today).'&to='.urlencode($today))
         ->assertInertia(fn ($page) => $page
             ->where('recentTrips.0.tanggal', $today)
-    );
+        );
 
     // Filter bulan lalu
-    $this->get('/dashboard', ['from' => $lastMonth, 'to' => $lastMonth])
+    $this->get('/dashboard?from='.urlencode($lastMonth).'&to='.urlencode($lastMonth))
         ->assertInertia(fn ($page) => $page
             ->where('recentTrips.0.tanggal', $lastMonth)
-    );
+        );
 });

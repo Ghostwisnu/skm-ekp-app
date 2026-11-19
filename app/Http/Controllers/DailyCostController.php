@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\DailyCostRequest;
 use App\Models\DailyCost;
-use App\Models\DailyCostExtra;
 use App\Models\Vehicle;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -56,9 +55,9 @@ class DailyCostController extends Controller
         );
 
         // Save extras if provided
-        if (!empty($data['extras'])) {
+        if (! empty($data['extras'])) {
             $extras = collect($data['extras'])
-                ->filter(fn ($extra) => !empty($extra['nama_biaya']))
+                ->filter(fn ($extra) => ! empty($extra['nama_biaya']))
                 ->map(fn ($extra) => [
                     'nama_biaya' => $extra['nama_biaya'],
                     'nominal' => $extra['nominal'] ?? 0,
@@ -93,9 +92,9 @@ class DailyCostController extends Controller
         // Sync extras: remove old, add new
         $dailyCost->extras()->delete();
 
-        if (!empty($data['extras'])) {
+        if (! empty($data['extras'])) {
             $extras = collect($data['extras'])
-                ->filter(fn ($extra) => !empty($extra['nama_biaya']))
+                ->filter(fn ($extra) => ! empty($extra['nama_biaya']))
                 ->map(fn ($extra) => [
                     'nama_biaya' => $extra['nama_biaya'],
                     'nominal' => $extra['nominal'] ?? 0,

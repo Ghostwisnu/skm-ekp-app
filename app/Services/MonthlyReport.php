@@ -2,12 +2,10 @@
 
 namespace App\Services;
 
-use App\Models\Trip;
-use App\Models\Invoice;
 use App\Models\DailyCost;
-use App\Models\DailyCostExtra;
-use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\DB;
+use App\Models\Invoice;
+use App\Models\Trip;
+use App\Models\Vehicle;
 use Carbon\Carbon;
 
 class MonthlyReport
@@ -29,13 +27,13 @@ class MonthlyReport
         // Determine month/year from filters or use current
         $month = $filters['month'] ?? (int) Carbon::now()->format('m');
         $year = $filters['year'] ?? (int) Carbon::now()->format('Y');
-        
+
         // If from/to provided, use those instead
         $from = $filters['from'] ?? Carbon::create($year, $month, 1)->startOfMonth()->toDateString();
         $to = $filters['to'] ?? Carbon::create($year, $month, 1)->endOfMonth()->toDateString();
-        
+
         // If month/year explicitly provided and no from/to, override
-        if (isset($filters['month']) && isset($filters['year']) && !isset($filters['from']) && !isset($filters['to'])) {
+        if (isset($filters['month']) && isset($filters['year']) && ! isset($filters['from']) && ! isset($filters['to'])) {
             $from = Carbon::create($year, $month, 1)->startOfMonth()->toDateString();
             $to = Carbon::create($year, $month, 1)->endOfMonth()->toDateString();
         }
@@ -50,7 +48,7 @@ class MonthlyReport
         $current = $fromDate->copy();
         while ($current->lte($toDate)) {
             $dateStr = $current->format('Y-m-d');
-            if (!isset($dates[$dateStr])) {
+            if (! isset($dates[$dateStr])) {
                 $dates[$dateStr] = [
                     'tanggal' => $dateStr,
                     'trip' => 0,
@@ -65,28 +63,28 @@ class MonthlyReport
         // Get trips in date range
         $trips = Trip::query()
             ->withSum('invoiceLines as nilai_invoice', 'jumlah')
-            ->when($from, fn($q) => $q->whereDate('tanggal', '>=', $fromDate))
-            ->when($to, fn($q) => $q->whereDate('tanggal', '<=', $toDate))
-            ->when($filters['vehicle_id'] ?? null, fn($q, $id) => $q->where('vehicle_id', $id))
-            ->when($filters['client_id'] ?? null, fn($q, $id) => $q->where('client_id', $id))
+            ->when($from, fn ($q) => $q->whereDate('tanggal', '>=', $fromDate))
+            ->when($to, fn ($q) => $q->whereDate('tanggal', '<=', $toDate))
+            ->when($filters['vehicle_id'] ?? null, fn ($q, $id) => $q->where('vehicle_id', $id))
+            ->when($filters['client_id'] ?? null, fn ($q, $id) => $q->where('client_id', $id))
             ->get();
 
         // Get invoices in date range
         $invoices = Invoice::query()
-            ->when($from, fn($q) => $q->whereDate('tanggal_awal', '>=', $fromDate))
-            ->when($to, fn($q) => $q->whereDate('tanggal_akhir', '<=', $toDate))
+            ->when($from, fn ($q) => $q->whereDate('tanggal_awal', '>=', $fromDate))
+            ->when($to, fn ($q) => $q->whereDate('tanggal_akhir', '<=', $toDate))
             ->get();
 
         // Get daily costs in date range
         $costs = DailyCost::query()
             ->with('extras')
-            ->when($from, fn($q) => $q->whereDate('tanggal', '>=', $fromDate))
-            ->when($to, fn($q) => $q->whereDate('tanggal', '<=', $toDate))
+            ->when($from, fn ($q) => $q->whereDate('tanggal', '>=', $fromDate))
+            ->when($to, fn ($q) => $q->whereDate('tanggal', '<=', $toDate))
             ->get();
 
         // Filter costs by vehicle if vehicle_id provided
         if ($filters['vehicle_id'] ?? null) {
-            $plat = \App\Models\Vehicle::query()->where('id', $filters['vehicle_id'])->value('plat');
+            $plat = Vehicle::query()->where('id', $filters['vehicle_id'])->value('plat');
             if ($plat) {
                 $costs = $costs->where('no_plat', $plat);
             }

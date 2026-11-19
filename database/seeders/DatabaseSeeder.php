@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Role;
@@ -33,7 +34,7 @@ class DatabaseSeeder extends Seeder
         ];
 
         foreach ($users as $userData) {
-            $user = \App\Models\User::updateOrCreate(
+            $user = User::updateOrCreate(
                 ['email' => $userData['email']],
                 [
                     'name' => $userData['name'],

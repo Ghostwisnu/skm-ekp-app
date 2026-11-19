@@ -5,6 +5,8 @@ namespace App\Http\Middleware;
 use App\Models\NavigationMenu;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
 
 class HandleInertiaRequests extends Middleware
 {
@@ -47,12 +49,12 @@ class HandleInertiaRequests extends Middleware
             'navigationMenus' => auth()->check()
                 ? NavigationMenu::accessibleMenus(auth()->user())
                 : [],
-            'roles' => \Spatie\Permission\Models\Role::with('permissions')->get(['id', 'name'])->map(fn ($r) => [
+            'roles' => Role::with('permissions')->get(['id', 'name'])->map(fn ($r) => [
                 'id' => $r->id,
                 'name' => $r->name,
                 'permissions' => $r->permissions->pluck('name')->toArray(),
             ])->values(),
-            'permissions' => \Spatie\Permission\Models\Permission::all()->pluck('name')->toArray(),
+            'permissions' => Permission::all()->pluck('name')->toArray(),
         ];
     }
 }
