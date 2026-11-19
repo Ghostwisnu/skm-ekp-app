@@ -83,7 +83,7 @@ jobs:
             git reset --hard origin/main
 
             echo "=== Composer install ==="
-            composer install --no-dev --optimize-autoloader --no-interaction
+            composer install --no-dev --optimize-autoloader --no-interaction --no-scripts
 
             echo "=== Create .env ==="
             cat > .env << ENVEOF
