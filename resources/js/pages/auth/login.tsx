@@ -7,7 +7,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
-import { login, request, loginForm } from '@/routes';
+import { request } from '@/routes/password';
 import PasskeyVerify from '@/components/passkey-verify';
 
 type Props = {
@@ -23,7 +23,8 @@ export default function Login({ status, canResetPassword }: Props) {
             <PasskeyVerify />
 
             <Form
-                {...loginForm()}
+                action="/ekp/login"
+                method="post"
                 resetOnSuccess={['password']}
                 className="flex flex-col gap-6"
             >
