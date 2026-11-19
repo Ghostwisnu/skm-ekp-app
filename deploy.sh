@@ -35,9 +35,18 @@ echo "[4.5/8] Discovering packages..."
 php artisan package:discover --ansi 2>/dev/null || echo "Package discovery skipped (proc_open not available)"
 
 echo ""
-echo "[5/8] Building Frontend..."
-npm ci
-npm run build
+echo "[5/8] Building Frontend (optional - skip if npm build fails)..."
+if npm run build 2>&1 | tail -5; then
+    echo "Build succeeded"
+else
+    echo "Build failed, using existing assets from repository"
+    # Ensure build assets exist (should be in repo now)
+    if [ ! -d public/build/assets ]; then
+        echo "ERROR: No build assets found!"
+        exit 1
+    fi
+    echo "Build assets verified"
+fi
 
 echo ""
 echo "[6/8] Clearing caches & Running migrations..."

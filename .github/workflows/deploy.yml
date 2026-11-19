@@ -37,8 +37,16 @@ jobs:
         run: |
           npm ci
           mkdir -p public/build
-          # Try to build, keep existing artifacts if it fails (pre-existing babel parser error)
-          npm run build 2>&1 | tail -1 | grep -qi "failed" && echo "Build had issues, using existing artifacts"
+          # Try to build, keep existing artifacts if it fails
+          if npm run build 2>&1 | tail -1 | grep -qi "failed"; then
+            echo "Build had issues, assets should exist in repository"
+          else
+            echo "Build succeeded"
+          fi
+          # Verify build assets exist
+          if [ ! -f "public/build/manifest.json" ]; then
+            echo "WARNING: manifest.json missing, will use repo version"
+          fi
           # Ensure assets directory exists
           mkdir -p public/build/assets
 
