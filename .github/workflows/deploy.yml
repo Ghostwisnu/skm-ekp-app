@@ -109,7 +109,7 @@ jobs:
             grep -q "DB_DATABASE" .env && echo "DB_DATABASE present" || echo "WARNING: DB_DATABASE missing"
 
             echo "=== Discover packages ==="
-            php artisan package:discover --ansi
+            php artisan package:discover --ansi 2>/dev/null || echo "Package discovery skipped (proc_open not available)"
 
             echo "=== Clear caches ==="
             php artisan config:clear

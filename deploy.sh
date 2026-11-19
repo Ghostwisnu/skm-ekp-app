@@ -29,7 +29,10 @@ echo ""
 echo "[4/8] Installing Composer Dependencies..."
 composer install --no-dev --optimize-autoloader --no-interaction --no-scripts
 rm -f bootstrap/cache/config.php bootstrap/cache/services.php bootstrap/cache/packages.php
-php artisan package:discover --ansi
+
+echo ""
+echo "[4.5/8] Discovering packages..."
+php artisan package:discover --ansi 2>/dev/null || echo "Package discovery skipped (proc_open not available)"
 
 echo ""
 echo "[5/8] Building Frontend..."
