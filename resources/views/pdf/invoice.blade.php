@@ -39,7 +39,6 @@
 <body>
     @php
         $isOutsourcing = $invoice->category === 'outsourcing';
-        $company = $this->companyDetails($invoice);
     @endphp
 
     @if ($isOutsourcing)
@@ -145,7 +144,7 @@
         </table>
 
         <div class="terbilang">
-            Terbilang: {{ $this->terbilang($invoice->total) }} Rupiah
+            Terbilang: {{ ucwords(terbilang($invoice->total)) }} Rupiah
         </div>
 
         <table class="footer">
