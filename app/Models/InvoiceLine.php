@@ -15,19 +15,19 @@ use Illuminate\Support\Carbon;
  * @property int $trip_id
  * @property int $trip_item_id
  * @property string $no_surat_jalan
- * @property Carbon $dating
+ * @property Carbon $tanggal
  * @property string $plat
- * @property string $barang
+ * @property string $jenis_barang
  * @property float $tonase_kg
  * @property int $harga_per_kg
  * @property string|null $rute
  * @property string|null $tujuan
- * @property float|null $qtybarang
+ * @property float|null $qty_barang
  * @property string|null $pricing_mode
  * @property int|null $harga_satuan
  * @property int $jumlah
  */
-#[Fillable(['trip_id', 'trip_item_id', 'no_surat_jalan', 'dating', 'plat', 'barang', 'tonase_kg', 'harga_per_kg', 'rute', 'tujuan', 'qtybarang', 'pricing_mode', 'harga_satuan', 'jumlah'])]
+#[Fillable(['trip_id', 'trip_item_id', 'no_surat_jalan', 'tanggal', 'plat', 'jenis_barang', 'tonase_kg', 'harga_per_kg', 'rute', 'tujuan', 'qty_barang', 'pricing_mode', 'harga_satuan', 'jumlah'])]
 class InvoiceLine extends Model
 {
     /** @use HasFactory<InvoiceLineFactory> */
@@ -39,9 +39,9 @@ class InvoiceLine extends Model
     protected function casts(): array
     {
         return [
-            'dating' => 'date:Y-m-d',
+            'tanggal' => 'date:Y-m-d',
             'tonase_kg' => 'float',
-            'qtybarang' => 'float',
+            'qty_barang' => 'float',
             'harga_per_kg' => 'integer',
             'harga_satuan' => 'integer',
             'jumlah' => 'integer',
