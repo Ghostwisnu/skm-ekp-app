@@ -65,6 +65,8 @@ php artisan route:cache
 php artisan view:cache
 php artisan optimize
 rsync -av --delete public/ "$PUBLIC_PATH/"
+# Ensure index.php is correct
+cp .deploy/index.php "$PUBLIC_PATH/index.php"
 php artisan storage:link || true
 
 echo ""
