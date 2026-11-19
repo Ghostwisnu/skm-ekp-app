@@ -64,6 +64,12 @@ php artisan config:cache
 php artisan route:cache
 php artisan view:cache
 php artisan optimize
+
+# Update manifest version to force browser refresh
+TIMESTAMP=$(date +%s)
+sed -i "s/\"version\": \".*\"/\"version\": \"$TIMESTAMP\"/" public/build/manifest.json 2>/dev/null || true
+sed -i "s/\"version\": \".*\"/\"version\": \"$TIMESTAMP\"/" public/build/fonts-manifest.json 2>/dev/null || true
+
 rsync -av --delete public/ "$PUBLIC_PATH/"
 # Ensure index.php is correct
 cp .deploy/index.php "$PUBLIC_PATH/index.php"
