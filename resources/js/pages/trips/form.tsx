@@ -5,6 +5,7 @@ import {
     update as updateTrip,
 } from "@/actions/App/Http/Controllers/TripController";
 import { Field, PageShell } from "@/components/page-shell";
+import { NativeSelect } from "@/components/native-select";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { formatRupiah } from "@/lib/format";
@@ -25,6 +26,8 @@ type FormData = {
     destination_client_id: string;
     destination_client_name: string;
     no_surat_jalan: string;
+    category: string;
+    tujuan: string;
     items: FormItem[];
 };
 
@@ -51,8 +54,9 @@ export default function TripForm({
     const destinationClient = clients.find(
         (client) => client.id === trip?.destination_client_id,
     );
+    const category = trip?.category ?? "kontrak";
     const form = useForm<FormData>({
-        tanggal: trip?.tanggal ?? new Date().toISOString().slice(0, 10),
+        tanggal: trip?.fecha ?? new Date().toISOString().slice(0, 10),
         plat: trip?.vehicle?.plat ?? "",
         client_id: trip ? String(trip.client_id) : "",
         client_name: tripClient?.nama ?? "",
@@ -61,6 +65,8 @@ export default function TripForm({
             : "",
         destination_client_name: destinationClient?.nama ?? "",
         no_surat_jalan: trip?.no_surat_jalan ?? "",
+        category: category,
+        tujuan: trip?.tujuan ?? "",
         items: trip?.items?.map((item: TripItem) => ({
             client_good_id: item.client_good_id ? String(item.client_good_id) : "",
             jenis_barang: item.jenis_barang,
@@ -207,22 +213,48 @@ export default function TripForm({
                             placeholder="Pilih atau ketik nama client"
                         />
                     </Field>
-                    <Field
-                        label="Client tujuan"
-                        error={
-                            form.errors.destination_client_name ??
-                            form.errors.destination_client_id
-                        }
-                    >
-                        <Input
-                            list="trip-clients"
-                            value={form.data.destination_client_name}
-                            onChange={(event) =>
-                                updateClientInput("destination_client", event.target.value)
-                            }
-                            placeholder="Pilih atau ketik nama client"
-                        />
+                    <Field label="Kategori">
+                        <NativeSelect
+                            value={form.data.category}
+                            onChange={(event) => {
+                                const next = event.target.value;
+                                form.setData("category", next);
+                                if (next === "outsourcing") {
+                                    form.setData("destination_client_id", "");
+                                    form.setData("destination_client_name", "");
+                                }
+                            }}
+                        >
+                            <option value="kontrak">Kontrak</option>
+                            <option value="outsourcing">Outsourcing</option>
+                        </NativeSelect>
                     </Field>
+                    {form.data.category === "outsourcing" ? (
+                        <Field label="Tujuan" error={form.errors.tujuan}>
+                            <Input
+                                value={form.data.tujuan}
+                                onChange={(event) => form.setData("tujuan", event.target.value)}
+                                placeholder="Ketik tujuan"
+                            />
+                        </Field>
+                    ) : (
+                        <Field
+                            label="Client tujuan"
+                            error={
+                                form.errors.destination_client_name ??
+                                form.errors.destination_client_id
+                            }
+                        >
+                            <Input
+                                list="trip-clients"
+                                value={form.data.destination_client_name}
+                                onChange={(event) =>
+                                    updateClientInput("destination_client", event.target.value)
+                                }
+                                placeholder="Pilih atau ketik nama client"
+                            />
+                        </Field>
+                    )}
                     <datalist id="trip-clients">
                         {clients.map((client) => (
                             <option key={client.id} value={client.nama} />

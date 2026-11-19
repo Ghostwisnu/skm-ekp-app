@@ -13,6 +13,8 @@ type Pending = {
     plat: string;
     no_surat_jalan: string;
     jenis_barang: string;
+    category: string;
+    tujuan: string | null;
     rute: string | null;
     qty_barang: number;
     pricing_mode: "per_qty" | "flat_trip" | null;
@@ -27,6 +29,7 @@ type InvoiceForm = {
     tanggal_akhir: string;
     no_invoice: string;
     ppn_persen: string;
+    pph_persen: string;
     prices: Record<string, string>;
 };
 
@@ -52,6 +55,7 @@ export default function InvoiceCreate({
         ...period,
         no_invoice: "",
         ppn_persen: String(ppnDefault),
+        pph_persen: "0",
         prices: {},
     });
     const errors = form.errors as Record<string, string | undefined>;
@@ -71,6 +75,7 @@ export default function InvoiceCreate({
         0,
     );
     const ppn = Math.round((subtotal * Number(form.data.ppn_persen || 0)) / 100);
+    const pph = Math.round((subtotal * Number(form.data.pph_persen || 0)) / 100);
 
     const submit = (event: React.FormEvent) => {
         event.preventDefault();
@@ -109,14 +114,14 @@ export default function InvoiceCreate({
                         ))}
                     </NativeSelect>
                 </Field>
-                <Field label="Client tujuan" error={errors.destination_client_id}>
+                <Field label="Client tujuan (opsional)" error={errors.destination_client_id}>
                     <NativeSelect
                         value={period.destination_client_id}
                         onChange={(e) =>
                             setPeriod({ ...period, destination_client_id: e.target.value })
                         }
                     >
-                        <option value="">Pilih client tujuan</option>
+                        <option value="">Pilih client tujuan (opsional)</option>
                         {clients.map((client) => (
                             <option
                                 key={client.id}
@@ -165,7 +170,7 @@ export default function InvoiceCreate({
                             <Th>Plat</Th>
                             <Th>No. Surat Jalan</Th>
                             <Th>Barang</Th>
-                            <Th>Rute</Th>
+                            <Th>Tujuan</Th>
                             <Th right>Qty</Th>
                             <Th right>Harga satuan / flat</Th>
                             <Th right>Jumlah</Th>
@@ -192,13 +197,16 @@ export default function InvoiceCreate({
                                 const amount =
                                     item.total_harga ?? Math.round(item.qty_barang * price);
 
+                                const isOutsourcing = item.category === "outsourcing";
+                                const destination = isOutsourcing ? item.tujuan : item.rute;
+
                                 return (
                                     <tr key={item.id}>
                                         <Td>{formatDate(item.tanggal)}</Td>
                                         <Td>{item.plat}</Td>
                                         <Td>{item.no_surat_jalan}</Td>
                                         <Td>{item.jenis_barang}</Td>
-                                        <Td>{item.rute ?? "-"}</Td>
+                                        <Td>{destination ?? "-"}</Td>
                                         <Td right>{formatNumber(item.qty_barang)}</Td>
                                         <Td right>
                                             {legacy ? (
@@ -254,14 +262,26 @@ export default function InvoiceCreate({
                                 onChange={(e) => form.setData("ppn_persen", e.target.value)}
                             />
                         </Field>
+                        <Field label="PPH Ps23 (%)" error={errors.pph_persen}>
+                            <Input
+                                type="number"
+                                min="0"
+                                max="100"
+                                step="0.01"
+                                value={form.data.pph_persen}
+                                onChange={(e) => form.setData("pph_persen", e.target.value)}
+                            />
+                        </Field>
                         <dl className="grid grid-cols-2 gap-1 text-sm tabular-nums">
                             <dt>Subtotal</dt>
                             <dd className="text-right">{formatRupiah(subtotal)}</dd>
                             <dt>PPN</dt>
                             <dd className="text-right">{formatRupiah(ppn)}</dd>
+                            <dt>PPH Ps23</dt>
+                            <dd className="text-right">{formatRupiah(pph)}</dd>
                             <dt className="font-semibold">Total</dt>
                             <dd className="text-right font-semibold">
-                                {formatRupiah(subtotal + ppn)}
+                                {formatRupiah(subtotal + ppn + pph)}
                             </dd>
                         </dl>
                         <Button type="submit" disabled={form.processing}>

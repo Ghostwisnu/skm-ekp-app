@@ -39,6 +39,8 @@ class TripRequest extends FormRequest
             'items.*.jenis_barang' => ['required', 'string', 'max:255', 'distinct'],
             'items.*.qty_barang' => ['required', 'numeric', 'min:0.01', 'max:9999999999'],
             'items.*.total_harga' => ['nullable', 'integer', 'min:0', 'max:999999999999'],
+            'category' => ['sometimes', Rule::in(['kontrak', 'outsourcing'])],
+            'tujuan' => ['nullable', 'string', 'max:255', 'required_if:category,outsourcing'],
         ];
     }
 

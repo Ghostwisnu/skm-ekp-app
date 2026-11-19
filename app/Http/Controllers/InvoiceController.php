@@ -40,7 +40,6 @@ class InvoiceController extends Controller
     {
         $filters = $request->only(['client_id', 'destination_client_id', 'tanggal_awal', 'tanggal_akhir']);
         $ready = ! empty($filters['client_id'])
-            && ! empty($filters['destination_client_id'])
             && ! empty($filters['tanggal_awal'])
             && ! empty($filters['tanggal_akhir']);
 
@@ -51,7 +50,7 @@ class InvoiceController extends Controller
             'pending' => $ready
                 ? $this->builder->pendingItems(
                     (int) $filters['client_id'],
-                    (int) $filters['destination_client_id'],
+                    $filters['destination_client_id'] ?? null,
                     $filters['tanggal_awal'],
                     $filters['tanggal_akhir'],
                 )
@@ -61,6 +60,8 @@ class InvoiceController extends Controller
                         'plat' => $item->trip->vehicle->plat,
                         'no_surat_jalan' => $item->trip->no_surat_jalan,
                         'jenis_barang' => $item->jenis_barang,
+                        'category' => $item->trip->category ?? 'kontrak',
+                        'tujuan' => $item->trip->tujuan,
                         'rute' => $item->trip->destination_client_id !== null
                             ? "{$item->trip->client->nama} → {$item->trip->destinationClient->nama}"
                             : $item->rute,

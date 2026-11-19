@@ -22,12 +22,13 @@ use Illuminate\Support\Carbon;
  * @property Carbon $tanggal_awal
  * @property Carbon $tanggal_akhir
  * @property float $ppn_persen
+ * @property float $pph_persen
  * @property int $subtotal
  * @property int $ppn_nominal
  * @property int $total
  * @property string $status
  */
-#[Fillable(['no_invoice', 'client_id', 'destination_client_id', 'tanggal_awal', 'tanggal_akhir', 'company_name', 'company_address', 'company_bank_name', 'company_bank_account', 'ppn_persen', 'subtotal', 'ppn_nominal', 'total', 'status', 'created_by'])]
+#[Fillable(['no_invoice', 'client_id', 'destination_client_id', 'tanggal_awal', 'tanggal_akhir', 'company_name', 'company_address', 'company_bank_name', 'company_bank_account', 'ppn_persen', 'pph_persen', 'subtotal', 'ppn_nominal', 'total', 'status', 'category', 'created_by'])]
 class Invoice extends Model
 {
     /** @use HasFactory<InvoiceFactory> */
@@ -46,6 +47,7 @@ class Invoice extends Model
             'tanggal_awal' => 'date:Y-m-d',
             'tanggal_akhir' => 'date:Y-m-d',
             'ppn_persen' => 'float',
+            'pph_persen' => 'float',
             'subtotal' => 'integer',
             'ppn_nominal' => 'integer',
             'total' => 'integer',

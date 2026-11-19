@@ -33,117 +33,252 @@
         .signature { text-align: center; padding-top: 0; }
         .signature-space { height: 55px; }
         .signature-name { font-weight: bold; }
+        .terbilang { font-size: 9px; font-style: italic; margin-top: 10px; }
     </style>
 </head>
 <body>
-    <div class="heading">
-        <h1>INVOICE - {{ $invoice->destinationClient?->nama ?? '-' }}</h1>
-        <p>PERIODE {{ $invoice->tanggal_awal->format('d/m/Y') }} - {{ $invoice->tanggal_akhir->format('d/m/Y') }}</p>
-    </div>
+    @php
+        $isOutsourcing = $invoice->category === 'outsourcing';
+        $company = $this->companyDetails($invoice);
+    @endphp
 
-    <table class="details">
-        <tr>
-            <td class="recipient">
-                <strong>{{ $company['name'] ?: 'Perusahaan Pemilik' }}</strong><br>
-                {{ $company['address'] }}
-            </td>
-            <td class="metadata">
-                <table>
-                    <tr>
-                        <td>Date</td>
-                        <td>:</td>
-                        <td>{{ $invoice->tanggal_akhir->format('d F Y') }}</td>
-                    </tr>
-                    <tr>
-                        <td>Kwitansi</td>
-                        <td>:</td>
-                        <td>{{ $invoice->no_invoice }}</td>
-                    </tr>
-                </table>
-            </td>
-        </tr>
-    </table>
+    @if ($isOutsourcing)
+        {{-- OUTSOURCING FORMAT --}}
+        <div class="heading">
+            <h1>PT. YENMAN YANG YUMANA</h1>
+            <p>INVOICE OUTSOURCING - {{ $invoice->client->nama }}</p>
+            <p>PERIODE {{ $invoice->tanggal_awal->format('d/m/Y') }} - {{ $invoice->tanggal_akhir->format('d/m/Y') }}</p>
+        </div>
 
-    <div class="attention">
-        <div class="attention-label">Attention To:</div>
-        <div class="attention-name">{{ $invoice->client->nama }}</div>
-    </div>
-
-    <table class="items">
-        <colgroup>
-            <col style="width: 11%">
-            <col style="width: 14%">
-            <col style="width: 18%">
-            <col style="width: 17%">
-            <col style="width: 8%">
-            <col style="width: 16%">
-            <col style="width: 16%">
-        </colgroup>
-        <thead>
+        <table class="details">
             <tr>
-                <th>TGL</th>
-                <th>NO. POLISI</th>
-                <th>SJ</th>
-                <th>UKURAN</th>
-                <th>QTY</th>
-                <th>HARGA @</th>
-                <th>TOTAL</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach ($invoice->lines as $line)
-                <tr>
-                    <td class="center">{{ $line->tanggal->format('d-M') }}</td>
-                    <td class="center">{{ $line->plat }}</td>
-                    <td class="center">{{ $line->no_surat_jalan }}</td>
-                    <td class="center">{{ $line->jenis_barang }}</td>
-                    <td class="center">{{ number_format($line->qty_barang ?? $line->tonase_kg, 2, ',', '.') }}</td>
-                    <td class="right">
-                        {{ number_format($line->harga_satuan ?? $line->harga_per_kg, 0, ',', '.') }}
-                        @if ($line->pricing_mode === 'flat_trip')
-                            <span>(flat)</span>
-                        @endif
-                    </td>
-                    <td class="right">{{ number_format($line->jumlah, 0, ',', '.') }}</td>
-                </tr>
-            @endforeach
-        </tbody>
-        <tfoot>
-            <tr>
-                <td colspan="6" class="summary-label">SUB TOTAL</td>
-                <td class="right">{{ number_format($invoice->subtotal, 0, ',', '.') }}</td>
-            </tr>
-            <tr>
-                <td colspan="6" class="summary-label">
-                    PPN {{ rtrim(rtrim(number_format($invoice->ppn_persen, 2, ',', '.'), '0'), ',') }}%
+                <td class="recipient">
+                    <strong>{{ $company['name'] ?: 'PT. YENMAN YANG YUMANA' }}</strong><br>
+                    {{ $company['address'] }}
                 </td>
-                <td class="right">{{ number_format($invoice->ppn_nominal, 0, ',', '.') }}</td>
+                <td class="metadata">
+                    <table>
+                        <tr>
+                            <td>Date</td>
+                            <td>:</td>
+                            <td>{{ $invoice->tanggal_akhir->format('d F Y') }}</td>
+                        </tr>
+                        <tr>
+                            <td>Invoice No</td>
+                            <td>:</td>
+                            <td>{{ $invoice->no_invoice }}</td>
+                        </tr>
+                    </table>
+                </td>
             </tr>
-            <tr class="grand-total">
-                <td colspan="6" class="summary-label">GRAND TOTAL</td>
-                <td class="right">{{ number_format($invoice->total, 0, ',', '.') }}</td>
-            </tr>
-        </tfoot>
-    </table>
+        </table>
 
-    <table class="footer">
-        <tr>
-            <td>
-                <div class="payment-title">Please remit in FULL AMOUNT directly to:</div>
-                <div class="payment-details">
-                    {{ $company['name'] }}<br>
-                    @if ($company['bank_account'])
-                        Acc. No: {{ $company['bank_account'] }}<br>
-                    @endif
-                    {{ $company['bank_name'] }}
-                </div>
-            </td>
-            <td class="signature">
-                <div>{{ $invoice->tanggal_akhir->format('d F Y') }}</div>
-                <div class="signature-space"></div>
-                <div class="signature-name">{{ $company['name'] ?: 'Perusahaan Pemilik' }}</div>
-            </td>
-        </tr>
-    </table>
+        <table class="items">
+            <colgroup>
+                <col style="width: 4%">
+                <col style="width: 11%">
+                <col style="width: 12%">
+                <col style="width: 12%">
+                <col style="width: 14%">
+                <col style="width: 14%">
+                <col style="width: 8%">
+                <col style="width: 12%">
+                <col style="width: 13%">
+            </colgroup>
+            <thead>
+                <tr>
+                    <th>No</th>
+                    <th>Tanggal</th>
+                    <th>Plat Kendaraan</th>
+                    <th>No. Surat Jalan</th>
+                    <th>Item</th>
+                    <th>Tujuan</th>
+                    <th>Qty</th>
+                    <th>Harga</th>
+                    <th>Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach ($invoice->lines as $index => $line)
+                    <tr>
+                        <td class="center">{{ $index + 1 }}</td>
+                        <td class="center">{{ $line->tanggal->format('d-M') }}</td>
+                        <td class="center">{{ $line->plat }}</td>
+                        <td class="center">{{ $line->no_surat_jalan }}</td>
+                        <td class="center">{{ $line->jenis_barang }}</td>
+                        <td class="center">{{ $line->tujuan ?? $line->rute ?? '-' }}</td>
+                        <td class="right">{{ number_format($line->qty_barang ?? $line->tonase_kg, 2, ',', '.') }}</td>
+                        <td class="right">
+                            {{ number_format($line->harga_satuan ?? $line->harga_per_kg, 0, ',', '.') }}
+                            @if ($line->pricing_mode === 'flat_trip')
+                                <span>(flat)</span>
+                            @endif
+                        </td>
+                        <td class="right">{{ number_format($line->jumlah, 0, ',', '.') }}</td>
+                    </tr>
+                @endforeach
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="8" class="summary-label">SUB TOTAL</td>
+                    <td class="right">{{ number_format($invoice->subtotal, 0, ',', '.') }}</td>
+                </tr>
+                <tr>
+                    <td colspan="8" class="summary-label">
+                        PPN {{ rtrim(rtrim(number_format($invoice->ppn_persen, 2, ',', '.'), '0'), ',') }}%
+                    </td>
+                    <td class="right">{{ number_format($invoice->ppn_nominal, 0, ',', '.') }}</td>
+                </tr>
+                @if ($invoice->pph_persen > 0)
+                    <tr>
+                        <td colspan="8" class="summary-label">
+                            PPH Ps23 {{ rtrim(rtrim(number_format($invoice->pph_persen, 2, ',', '.'), '0'), ',') }}%
+                        </td>
+                        <td class="right">{{ number_format($invoice->subtotal * $invoice->pph_persen / 100, 0, ',', '.') }}</td>
+                    </tr>
+                @endif
+                <tr class="grand-total">
+                    <td colspan="8" class="summary-label">GRAND TOTAL</td>
+                    <td class="right">{{ number_format($invoice->total, 0, ',', '.') }}</td>
+                </tr>
+            </tfoot>
+        </table>
+
+        <div class="terbilang">
+            Terbilang: {{ $this->terbilang($invoice->total) }} Rupiah
+        </div>
+
+        <table class="footer">
+            <tr>
+                <td>
+                    <div class="payment-title">Please remit in FULL AMOUNT directly to:</div>
+                    <div class="payment-details">
+                        {{ $company['name'] ?: 'PT. YENMAN YANG YUMANA' }}<br>
+                        @if ($company['bank_account'])
+                            Acc. No: {{ $company['bank_account'] }}<br>
+                        @endif
+                        {{ $company['bank_name'] }}
+                    </div>
+                </td>
+                <td class="signature">
+                    <div>{{ $invoice->tanggal_akhir->format('d F Y') }}</div>
+                    <div class="signature-space"></div>
+                    <div class="signature-name">{{ $company['name'] ?: 'PT. YENMAN YANG YUMANA' }}</div>
+                </td>
+            </tr>
+        </table>
+
+    @else
+        {{-- KONTRAK FORMAT (EXISTING) --}}
+        <div class="heading">
+            <h1>INVOICE - {{ $invoice->destinationClient?->nama ?? '-' }}</h1>
+            <p>PERIODE {{ $invoice->tanggal_awal->format('d/m/Y') }} - {{ $invoice->tanggal_akhir->format('d/m/Y') }}</p>
+        </div>
+
+        <table class="details">
+            <tr>
+                <td class="recipient">
+                    <strong>{{ $company['name'] ?: 'Perusahaan Pemilik' }}</strong><br>
+                    {{ $company['address'] }}
+                </td>
+                <td class="metadata">
+                    <table>
+                        <tr>
+                            <td>Date</td>
+                            <td>:</td>
+                            <td>{{ $invoice->tanggal_akhir->format('d F Y') }}</td>
+                        </tr>
+                        <tr>
+                            <td>Kwitansi</td>
+                            <td>:</td>
+                            <td>{{ $invoice->no_invoice }}</td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
+
+        <div class="attention">
+            <div class="attention-label">Attention To:</div>
+            <div class="attention-name">{{ $invoice->client->nama }}</div>
+        </div>
+
+        <table class="items">
+            <colgroup>
+                <col style="width: 11%">
+                <col style="width: 14%">
+                <col style="width: 18%">
+                <col style="width: 17%">
+                <col style="width: 8%">
+                <col style="width: 16%">
+                <col style="width: 16%">
+            </colgroup>
+            <thead>
+                <tr>
+                    <th>TGL</th>
+                    <th>NO. POLISI</th>
+                    <th>SJ</th>
+                    <th>UKURAN</th>
+                    <th>QTY</th>
+                    <th>HARGA @</th>
+                    <th>TOTAL</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach ($invoice->lines as $line)
+                    <tr>
+                        <td class="center">{{ $line->tanggal->format('d-M') }}</td>
+                        <td class="center">{{ $line->plat }}</td>
+                        <td class="center">{{ $line->no_surat_jalan }}</td>
+                        <td class="center">{{ $line->jenis_barang }}</td>
+                        <td class="center">{{ number_format($line->qty_barang ?? $line->tonase_kg, 2, ',', '.') }}</td>
+                        <td class="right">
+                            {{ number_format($line->harga_satuan ?? $line->harga_per_kg, 0, ',', '.') }}
+                            @if ($line->pricing_mode === 'flat_trip')
+                                <span>(flat)</span>
+                            @endif
+                        </td>
+                        <td class="right">{{ number_format($line->jumlah, 0, ',', '.') }}</td>
+                    </tr>
+                @endforeach
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="6" class="summary-label">SUB TOTAL</td>
+                    <td class="right">{{ number_format($invoice->subtotal, 0, ',', '.') }}</td>
+                </tr>
+                <tr>
+                    <td colspan="6" class="summary-label">
+                        PPN {{ rtrim(rtrim(number_format($invoice->ppn_persen, 2, ',', '.'), '0'), ',') }}%
+                    </td>
+                    <td class="right">{{ number_format($invoice->ppn_nominal, 0, ',', '.') }}</td>
+                </tr>
+                <tr class="grand-total">
+                    <td colspan="6" class="summary-label">GRAND TOTAL</td>
+                    <td class="right">{{ number_format($invoice->total, 0, ',', '.') }}</td>
+                </tr>
+            </tfoot>
+        </table>
+
+        <table class="footer">
+            <tr>
+                <td>
+                    <div class="payment-title">Please remit in FULL AMOUNT directly to:</div>
+                    <div class="payment-details">
+                        {{ $company['name'] ?: 'Perusahaan Pemilik' }}<br>
+                        @if ($company['bank_account'])
+                            Acc. No: {{ $company['bank_account'] }}<br>
+                        @endif
+                        {{ $company['bank_name'] }}
+                    </div>
+                </td>
+                <td class="signature">
+                    <div>{{ $invoice->tanggal_akhir->format('d F Y') }}</div>
+                    <div class="signature-space"></div>
+                    <div class="signature-name">{{ $company['name'] ?: 'Perusahaan Pemilik' }}</div>
+                </td>
+            </tr>
+        </table>
+    @endif
 </body>
 </html>

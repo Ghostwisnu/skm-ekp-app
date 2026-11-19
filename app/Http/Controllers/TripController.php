@@ -55,16 +55,17 @@ class TripController extends Controller
                 'client_name',
                 'destination_client_name',
             ]);
+            $category = $request->validated('category') ?? 'kontrak';
+            $data['category'] = $category;
+            $data['tujuan'] = $category === 'outsourcing' ? ($request->validated('tujuan') ?? null) : null;
+
             $client = $this->resolveClient(
                 isset($data['client_id']) ? (int) $data['client_id'] : null,
                 $request->validated('client_name'),
             );
-            $destinationClient = $this->resolveClient(
-                isset($data['destination_client_id']) ? (int) $data['destination_client_id'] : null,
-                $request->validated('destination_client_name'),
-            );
             $data['client_id'] = $client->id;
-            $data['destination_client_id'] = $destinationClient->id;
+            $data['destination_client_id'] = $category === 'outsourcing' ? null : (isset($data['destination_client_id']) ? (int) $data['destination_client_id'] : null);
+
             $vehicle = Vehicle::query()->firstOrCreate(['plat' => $request->validated('plat')]);
             $data['vehicle_id'] = $vehicle->id;
             $data['sopir'] = $vehicle->nama_supir ?? '';
@@ -72,7 +73,9 @@ class TripController extends Controller
             $trip = Trip::query()->create($data);
             $trip->items()->createMany($this->resolveItems(
                 (int) $data['client_id'],
-                (int) $data['destination_client_id'],
+                $data['destination_client_id'],
+                $category,
+                $data['tujuan'],
                 $request->validated('items'),
             ));
         });
@@ -107,25 +110,24 @@ class TripController extends Controller
                 'client_name',
                 'destination_client_name',
             ]);
+            $category = $request->validated('category') ?? 'kontrak';
+            $data['category'] = $category;
+            $data['tujuan'] = $category === 'outsourcing' ? ($request->validated('tujuan') ?? null) : null;
+
             $client = $this->resolveClient(
                 isset($data['client_id']) ? (int) $data['client_id'] : null,
                 $request->validated('client_name'),
             );
-            $destinationClient = $this->resolveClient(
-                isset($data['destination_client_id']) ? (int) $data['destination_client_id'] : null,
-                $request->validated('destination_client_name'),
-            );
             $data['client_id'] = $client->id;
-            $data['destination_client_id'] = $destinationClient->id;
-            $vehicle = Vehicle::query()->firstOrCreate(['plat' => $request->validated('plat')]);
-            $data['vehicle_id'] = $vehicle->id;
-            $data['sopir'] = $vehicle->nama_supir ?? '';
+            $data['destination_client_id'] = $category === 'outsourcing' ? null : (isset($data['destination_client_id']) ? (int) $data['destination_client_id'] : null);
 
             $trip->update($data);
             $trip->items()->delete();
             $trip->items()->createMany($this->resolveItems(
                 (int) $data['client_id'],
-                (int) $data['destination_client_id'],
+                $data['destination_client_id'],
+                $category,
+                $data['tujuan'],
                 $request->validated('items'),
             ));
         });
@@ -180,14 +182,20 @@ class TripController extends Controller
     }
 
     /**
+     * @param  int|null  $destinationClientId
+     * @param  string|null  $tujuanText
      * @param  list<array{client_good_id: int|null, jenis_barang: string, qty_barang: int|float|string, total_harga?: int|string|null}>  $items
      * @return list<array<string, int|float|string|null>>
      */
-    private function resolveItems(int $clientId, int $destinationClientId, array $items): array
+    private function resolveItems(int $clientId, ?int $destinationClientId, string $category, ?string $tujuanText, array $items): array
     {
         $sourceClient = Client::query()->findOrFail($clientId);
-        $destinationClient = Client::query()->findOrFail($destinationClientId);
-        $route = "{$sourceClient->nama} → {$destinationClient->nama}";
+        $route = match ($category) {
+            'outsourcing' => $sourceClient->nama . ' → ' . ($tujuanText ?? '-'),
+            default => $destinationClientId !== null
+                ? "{$sourceClient->nama} → " . Client::query()->findOrFail($destinationClientId)->nama
+                : $sourceClient->nama,
+        };
 
         return array_map(function (array $item, int $index) use ($clientId, $route): array {
             $good = isset($item['client_good_id'])

@@ -67,6 +67,8 @@ export type Trip = {
     invoice_id: number | null;
     sopir: string;
     no_surat_jalan: string;
+    category: string;
+    tujuan: string | null;
     total_qty?: number | null;
     vehicle?: Vehicle;
     client?: Client;

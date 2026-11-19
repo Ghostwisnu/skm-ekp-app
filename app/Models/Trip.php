@@ -12,15 +12,17 @@ use Illuminate\Support\Carbon;
 
 /**
  * @property int $id
- * @property Carbon $tanggal
+ * @property Carbon $fecha
  * @property int $vehicle_id
  * @property int $client_id
  * @property int|null $destination_client_id
  * @property int|null $invoice_id
  * @property string $sopir
  * @property string $no_surat_jalan
+ * @property string $category
+ * @property string|null $tujuan
  */
-#[Fillable(['tanggal', 'vehicle_id', 'client_id', 'destination_client_id', 'sopir', 'no_surat_jalan'])]
+#[Fillable(['fecha', 'vehicle_id', 'client_id', 'destination_client_id', 'sopir', 'no_surat_jalan', 'category', 'tujuan'])]
 class Trip extends Model
 {
     /** @use HasFactory<TripFactory> */
@@ -32,7 +34,7 @@ class Trip extends Model
     protected function casts(): array
     {
         return [
-            'tanggal' => 'date:Y-m-d',
+            'fecha' => 'date:Y-m-d',
         ];
     }
 
