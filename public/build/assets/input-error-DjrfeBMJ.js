@@ -1,0 +1,1 @@
+import{t as e}from"./utils-DJPu_GY6.js";import{t}from"./jsx-runtime-Cn_ryJ6s.js";var n=t();function r({message:t,className:r=``,...i}){return t?(0,n.jsx)(`p`,{...i,className:e(`text-sm text-red-600 dark:text-red-400`,r),children:t}):null}export{r as t};
