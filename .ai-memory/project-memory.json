@@ -1,0 +1,41 @@
+{
+  "project": "skm-ekp-app",
+  "version": "1.0.0",
+  "lastUpdated": "2026-11-19T08:39:16.004Z",
+  "stack": {
+    "language": "TypeScript/ESM",
+    "framework": "Laravel + Inertia + React",
+    "orm": "None",
+    "database": "Unknown",
+    "php": "^8.5",
+    "laravel": "^13.17",
+    "inertia": true
+  },
+  "architecture": {
+    "pattern": "MVC + Inertia SPA",
+    "tenancy": "Company-scoped via middleware + Prisma/ALS",
+    "rbac": "Role-based with granular permissions",
+    "api": "Laravel Routes + Inertia"
+  },
+  "keyFiles": {},
+  "conventions": {
+    "naming": "PSR-12 for PHP, camelCase for JS/TS",
+    "errors": "AppError with ERR codes",
+    "validation": "Laravel FormRequest + Zod",
+    "testing": "Pest PHP + Jest for frontend",
+    "multiTenant": "Company-scoped via middleware + Prisma/Als"
+  },
+  "security": {
+    "jwtSecretMinLength": 32,
+    "refreshTokenRotation": true,
+    "superAdminBypassLogged": true,
+    "invalidTokenFlagged": true,
+    "csrfProtection": true,
+    "rateLimiting": true
+  },
+  "commonTasks": {
+    "createEndpoint": "Route → Controller → FormRequest → Service → Resource → Test",
+    "addPermission": "Permission → RolePermission → UserRole → Gate/Policy",
+    "newModel": "Migration → Model → Factory → Seeder → Query Scopes"
+  }
+}
