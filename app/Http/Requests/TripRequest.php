@@ -20,12 +20,18 @@ class TripRequest extends FormRequest
             'plat' => ['required', 'string', 'max:255'],
             'client_id' => ['nullable', 'integer', Rule::exists('clients', 'id')],
             'client_name' => ['nullable', 'string', 'max:255', 'required_without:client_id'],
-            'destination_client_id' => ['nullable', 'integer', Rule::exists('clients', 'id')],
+            'destination_client_id' => [
+                'nullable',
+                'integer',
+                'required_if:category,kontrak',
+                Rule::exists('clients', 'id'),
+            ],
             'destination_client_name' => [
                 'nullable',
                 'string',
                 'max:255',
                 'required_without:destination_client_id',
+                'required_if:category,kontrak',
             ],
             'no_surat_jalan' => ['required', 'string', 'max:255', Rule::unique('trips', 'no_surat_jalan')->ignore($this->route('trip'))],
             'items' => ['required', 'array', 'min:1'],
@@ -51,6 +57,11 @@ class TripRequest extends FormRequest
     {
         return [
             function (Validator $validator): void {
+                // Skip validation for outsourcing (no destination client needed)
+                if ($this->input('category') === 'outsourcing') {
+                    return;
+                }
+
                 if ($validator->errors()->hasAny([
                     'client_id',
                     'client_name',

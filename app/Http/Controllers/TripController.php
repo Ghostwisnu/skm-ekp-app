@@ -65,7 +65,7 @@ class TripController extends Controller
             );
             $data['client_id'] = $client->id;
 
-            // Resolve destination client from ID or name
+            // Resolve destination client from ID or name (for kontrak only)
             if ($category !== 'outsourcing') {
                 $destinationClient = $this->resolveClient(
                     isset($data['destination_client_id']) ? (int) $data['destination_client_id'] : null,
