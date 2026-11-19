@@ -25,15 +25,12 @@ export default function Welcome() {
                                 >
                                     Log in
                                 </Link>
-                                <Link
-                            // Hide register link for now - routes not configured
-                            // <Link
-                            //     href={register()}
-                            //     className="inline-block rounded-sm border border-transparent px-5 py-1.5 text-sm leading-normal text-[#1b1b18] hover:border-[#19140035] dark:text-[#EDEDEC] dark:hover:border-[#3E3E3A]"
-                            // >
-                            //     Register
-                            // </Link>
-                        );
+                                {/* <Link
+                                    href={register()}
+                                    className="inline-block rounded-sm border border-transparent px-5 py-1.5 text-sm leading-normal text-[#1b1b18] hover:border-[#19140035] dark:text-[#EDEDEC] dark:hover:border-[#3E3E3A]"
+                                >
+                                    Register
+                                </Link> */}
                             </>
                         )}
                     </nav>
