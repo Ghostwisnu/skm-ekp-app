@@ -12,7 +12,6 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('invoices', function (Blueprint $table) {
-            $table->decimal('pph_persen', 5, 2)->default(0)->after('ppn_persen');
             $table->unsignedBigInteger('pph_nominal')->default(0)->after('ppn_nominal');
         });
     }
@@ -23,7 +22,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('invoices', function (Blueprint $table) {
-            $table->dropColumn(['pph_persen', 'pph_nominal']);
+            $table->dropColumn(['pph_nominal']);
         });
     }
 };
