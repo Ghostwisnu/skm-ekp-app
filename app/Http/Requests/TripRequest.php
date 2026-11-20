@@ -23,7 +23,6 @@ class TripRequest extends FormRequest
             'destination_client_id' => [
                 'nullable',
                 'integer',
-                'required_if:category,kontrak',
                 Rule::exists('clients', 'id'),
             ],
             'destination_client_name' => [
@@ -31,7 +30,6 @@ class TripRequest extends FormRequest
                 'string',
                 'max:255',
                 'required_without:destination_client_id',
-                'required_if:category,kontrak',
             ],
             'no_surat_jalan' => ['required', 'string', 'max:255', Rule::unique('trips', 'no_surat_jalan')->ignore($this->route('trip'))],
             'items' => ['required', 'array', 'min:1'],
@@ -57,8 +55,17 @@ class TripRequest extends FormRequest
     {
         return [
             function (Validator $validator): void {
-                // Skip validation for outsourcing (no destination client needed)
+                // For kontrak category, destination client is required
                 if ($this->input('category') === 'outsourcing') {
+                    return;
+                }
+
+                $destinationClientId = $this->input('destination_client_id');
+                $destinationClientName = trim((string) $this->input('destination_client_name'));
+
+                // Require destination client for kontrak
+                if (empty($destinationClientId) && empty($destinationClientName)) {
+                    $validator->errors()->add('destination_client_id', 'The destination client id field is required when category is kontrak.');
                     return;
                 }
 
@@ -72,7 +79,6 @@ class TripRequest extends FormRequest
                 }
 
                 $clientName = trim((string) $this->input('client_name'));
-                $destinationClientName = trim((string) $this->input('destination_client_name'));
                 $clientId = $this->input('client_id')
                     ?? Client::query()->where('nama', $clientName)->value('id');
                 $destinationClientId = $this->input('destination_client_id')
