@@ -29,7 +29,6 @@ class TripRequest extends FormRequest
                 'nullable',
                 'string',
                 'max:255',
-                'required_without:destination_client_id',
             ],
             'no_surat_jalan' => ['required', 'string', 'max:255', Rule::unique('trips', 'no_surat_jalan')->ignore($this->route('trip'))],
             'items' => ['required', 'array', 'min:1'],
@@ -57,6 +56,16 @@ class TripRequest extends FormRequest
             function (Validator $validator): void {
                 $category = $this->input('category') ?? 'kontrak';
 
+                // Require client_name for outsourcing category
+                if ($category === 'outsourcing') {
+                    $clientName = trim((string) $this->input('client_name'));
+                    if (empty($clientName)) {
+                        $validator->errors()->add('client_name', 'Client asal wajib diisi untuk outsourcing.');
+
+                        return;
+                    }
+                }
+
                 // For kontrak category, destination client is required
                 if ($category !== 'outsourcing') {
                     $destinationClientId = $this->input('destination_client_id');
@@ -65,6 +74,7 @@ class TripRequest extends FormRequest
                     // Require destination client for kontrak
                     if (empty($destinationClientId) && empty($destinationClientName)) {
                         $validator->errors()->add('destination_client_id', 'The destination client id field is required when category is kontrak.');
+
                         return;
                     }
 

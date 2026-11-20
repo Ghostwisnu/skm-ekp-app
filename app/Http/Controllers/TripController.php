@@ -60,7 +60,7 @@ class TripController extends Controller
             $data['tujuan'] = $category === 'outsourcing' ? ($request->validated('tujuan') ?? null) : null;
 
             $client = $this->resolveClient(
-                isset($data['client_id']) ? (int) $data['client_id'] : null,
+                empty($data['client_id']) ? null : (int) $data['client_id'],
                 $request->validated('client_name'),
             );
             $data['client_id'] = $client->id;
@@ -68,7 +68,7 @@ class TripController extends Controller
             // Resolve destination client from ID or name (for kontrak only)
             if ($category !== 'outsourcing') {
                 $destinationClient = $this->resolveClient(
-                    isset($data['destination_client_id']) ? (int) $data['destination_client_id'] : null,
+                    empty($data['destination_client_id']) ? null : (int) $data['destination_client_id'],
                     $request->validated('destination_client_name'),
                 );
                 $data['destination_client_id'] = $destinationClient->id;
@@ -125,7 +125,7 @@ class TripController extends Controller
             $data['tujuan'] = $category === 'outsourcing' ? ($request->validated('tujuan') ?? null) : null;
 
             $client = $this->resolveClient(
-                isset($data['client_id']) ? (int) $data['client_id'] : null,
+                empty($data['client_id']) ? null : (int) $data['client_id'],
                 $request->validated('client_name'),
             );
             $data['client_id'] = $client->id;
@@ -182,7 +182,14 @@ class TripController extends Controller
             return Client::query()->findOrFail($clientId);
         }
 
-        return Client::query()->firstOrCreate(['nama' => trim((string) $clientName)]);
+        $name = trim((string) $clientName);
+        if ($name === '') {
+            throw ValidationException::withMessages([
+                'client_name' => 'Client name is required.',
+            ]);
+        }
+
+        return Client::query()->firstOrCreate(['nama' => $name]);
     }
 
     /**
@@ -216,7 +223,10 @@ class TripController extends Controller
         };
 
         return array_map(function (array $item, int $index) use ($clientId, $route): array {
-            $good = isset($item['client_good_id'])
+            // client_good_id can be empty string from frontend - treat as "create new"
+            $hasExistingGoodId = ! empty($item['client_good_id']);
+
+            $good = $hasExistingGoodId
                 ? ClientGood::query()
                     ->where('client_id', $clientId)
                     ->find($item['client_good_id'])
