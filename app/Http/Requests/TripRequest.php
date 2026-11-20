@@ -55,46 +55,46 @@ class TripRequest extends FormRequest
     {
         return [
             function (Validator $validator): void {
+                $category = $this->input('category') ?? 'kontrak';
+
                 // For kontrak category, destination client is required
-                if ($this->input('category') === 'outsourcing') {
-                    return;
-                }
+                if ($category !== 'outsourcing') {
+                    $destinationClientId = $this->input('destination_client_id');
+                    $destinationClientName = trim((string) $this->input('destination_client_name'));
 
-                $destinationClientId = $this->input('destination_client_id');
-                $destinationClientName = trim((string) $this->input('destination_client_name'));
+                    // Require destination client for kontrak
+                    if (empty($destinationClientId) && empty($destinationClientName)) {
+                        $validator->errors()->add('destination_client_id', 'The destination client id field is required when category is kontrak.');
+                        return;
+                    }
 
-                // Require destination client for kontrak
-                if (empty($destinationClientId) && empty($destinationClientName)) {
-                    $validator->errors()->add('destination_client_id', 'The destination client id field is required when category is kontrak.');
-                    return;
-                }
+                    if ($validator->errors()->hasAny([
+                        'client_id',
+                        'client_name',
+                        'destination_client_id',
+                        'destination_client_name',
+                    ])) {
+                        return;
+                    }
 
-                if ($validator->errors()->hasAny([
-                    'client_id',
-                    'client_name',
-                    'destination_client_id',
-                    'destination_client_name',
-                ])) {
-                    return;
-                }
+                    $clientName = trim((string) $this->input('client_name'));
+                    $clientId = $this->input('client_id')
+                        ?? Client::query()->where('nama', $clientName)->value('id');
+                    $destinationClientId = $this->input('destination_client_id')
+                        ?? Client::query()->where('nama', $destinationClientName)->value('id');
 
-                $clientName = trim((string) $this->input('client_name'));
-                $clientId = $this->input('client_id')
-                    ?? Client::query()->where('nama', $clientName)->value('id');
-                $destinationClientId = $this->input('destination_client_id')
-                    ?? Client::query()->where('nama', $destinationClientName)->value('id');
+                    if (
+                        ($clientId !== null && $destinationClientId !== null
+                            && (string) $clientId === (string) $destinationClientId)
+                        || ($clientId === null && $destinationClientId === null
+                            && Str::lower($clientName) === Str::lower($destinationClientName))
+                    ) {
+                        $errorKey = $this->filled('destination_client_id')
+                            ? 'destination_client_id'
+                            : 'destination_client_name';
 
-                if (
-                    ($clientId !== null && $destinationClientId !== null
-                        && (string) $clientId === (string) $destinationClientId)
-                    || ($clientId === null && $destinationClientId === null
-                        && Str::lower($clientName) === Str::lower($destinationClientName))
-                ) {
-                    $errorKey = $this->filled('destination_client_id')
-                        ? 'destination_client_id'
-                        : 'destination_client_name';
-
-                    $validator->errors()->add($errorKey, 'Client asal dan tujuan harus berbeda.');
+                        $validator->errors()->add($errorKey, 'Client asal dan tujuan harus berbeda.');
+                    }
                 }
             },
         ];

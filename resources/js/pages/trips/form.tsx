@@ -5,6 +5,7 @@ import {
     update as updateTrip,
 } from "@/actions/App/Http/Controllers/TripController";
 import { Field, PageShell } from "@/components/page-shell";
+import { RequiredBadge } from "@/components/required-badge";
 import { NativeSelect } from "@/components/native-select";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -176,20 +177,20 @@ export default function TripForm({
         <PageShell title={trip ? "Ubah Trip" : "Tambah Trip"}>
             <form onSubmit={submit} className="grid max-w-5xl gap-4 rounded-md border bg-card p-4">
                 <div className="grid gap-4 sm:grid-cols-2">
-                    <Field label="Tanggal" error={form.errors.tanggal}>
+                    <Field label={<><strong>Tgl</strong> <RequiredBadge /></>} error={form.errors.tanggal}>
                         <Input
                             type="date"
                             value={form.data.tanggal}
                             onChange={(event) => form.setData("tanggal", event.target.value)}
                         />
                     </Field>
-                    <Field label="No. Surat Jalan" error={form.errors.no_surat_jalan}>
+                    <Field label={<><strong>No. Surat Jalan</strong> <RequiredBadge /></>} error={form.errors.no_surat_jalan}>
                         <Input
                             value={form.data.no_surat_jalan}
                             onChange={(event) => form.setData("no_surat_jalan", event.target.value)}
                         />
                     </Field>
-                    <Field label="Plat" error={form.errors.plat}>
+                    <Field label={<><strong>Plat</strong> <RequiredBadge /></>} error={form.errors.plat}>
                         <Input
                             list="trip-vehicle-plates"
                             value={form.data.plat}
@@ -203,7 +204,7 @@ export default function TripForm({
                         </datalist>
                     </Field>
                     <Field
-                        label="Client asal"
+                        label={<><strong>Client asal</strong> <RequiredBadge /></>}
                         error={form.errors.client_name ?? form.errors.client_id}
                     >
                         <Input
@@ -213,7 +214,7 @@ export default function TripForm({
                             placeholder="Pilih atau ketik nama client"
                         />
                     </Field>
-                    <Field label="Kategori">
+                    <Field label={<><strong>Kategori</strong> <RequiredBadge /></>}>
                         <NativeSelect
                             value={form.data.category}
                             onChange={(event) => {
@@ -230,7 +231,7 @@ export default function TripForm({
                         </NativeSelect>
                     </Field>
                     {form.data.category === "outsourcing" ? (
-                        <Field label="Tujuan" error={form.errors.tujuan}>
+                        <Field label={<><strong>Tujuan</strong> <RequiredBadge /></>} error={form.errors.tujuan}>
                             <Input
                                 value={form.data.tujuan}
                                 onChange={(event) => form.setData("tujuan", event.target.value)}
@@ -239,7 +240,7 @@ export default function TripForm({
                         </Field>
                     ) : (
                         <Field
-                            label="Client tujuan"
+                            label={<><strong>Client tujuan</strong> <RequiredBadge /></>}
                             error={
                                 form.errors.destination_client_name ??
                                 form.errors.destination_client_id
@@ -302,7 +303,7 @@ export default function TripForm({
                                 className="grid items-start gap-2 rounded-md border p-3 sm:grid-cols-[minmax(12rem,2fr)_8rem_10rem_10rem_auto]"
                             >
                                 <Field
-                                    label="Jenis barang"
+                                    label={<><strong>Jenis barang</strong> <RequiredBadge /></>}
                                     error={
                                         error(`items.${index}.jenis_barang`) ??
                                         error(`items.${index}.client_good_id`)
@@ -323,7 +324,7 @@ export default function TripForm({
                                     </datalist>
                                 </Field>
                                 <Field
-                                    label="Qty barang"
+                                    label={<><strong>Qty barang</strong> <RequiredBadge /></>}
                                     error={error(`items.${index}.qty_barang`)}
                                 >
                                     <Input
