@@ -281,7 +281,7 @@ export default function InvoiceCreate({
                             <dd className="text-right">{formatRupiah(pph)}</dd>
                             <dt className="font-semibold">Total</dt>
                             <dd className="text-right font-semibold">
-                                {formatRupiah(subtotal + ppn + pph)}
+                                {formatRupiah(subtotal + ppn - pph)}
                             </dd>
                         </dl>
                         <Button type="submit" disabled={form.processing}>
