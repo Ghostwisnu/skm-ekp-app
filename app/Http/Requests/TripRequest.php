@@ -18,14 +18,10 @@ class TripRequest extends FormRequest
         return [
             'tanggal' => ['required', 'date'],
             'plat' => ['required', 'string', 'max:255'],
-            'client_id' => ['nullable', 'sometimes', 'integer', 'min:1', Rule::exists('clients', 'id')],
+            'client_id' => ['nullable', 'integer', Rule::exists('clients', 'id')],
             'client_name' => ['nullable', 'string', 'max:255', 'required_without:client_id'],
             'destination_client_id' => [
-                'nullable',
-                'sometimes',
-                'integer',
-                'min:1',
-                Rule::exists('clients', 'id'),
+                'nullable', 'integer', Rule::exists('clients', 'id'),
             ],
             'destination_client_name' => [
                 'nullable',
@@ -35,7 +31,7 @@ class TripRequest extends FormRequest
             'no_surat_jalan' => ['required', 'string', 'max:255', Rule::unique('trips', 'no_surat_jalan')->ignore($this->route('trip'))],
             'items' => ['required', 'array', 'min:1'],
             'items.*.client_good_id' => [
-                'nullable', 'sometimes', 'integer',
+                'nullable', 'integer',
                 Rule::exists('client_goods', 'id')->where(
                     fn ($query) => $query->where('client_id', $this->input('client_id')),
                 ),
