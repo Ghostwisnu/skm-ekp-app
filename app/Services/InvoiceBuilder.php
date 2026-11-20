@@ -116,7 +116,8 @@ class InvoiceBuilder
             $invoice->update([
                 'subtotal' => $subtotal,
                 'ppn_nominal' => $ppnNominal,
-                'total' => $subtotal + $ppnNominal + $pphNominal,
+                'pph_nominal' => $pphNominal,
+                'total' => $subtotal + $ppnNominal - $pphNominal,
             ]);
 
             Trip::query()
