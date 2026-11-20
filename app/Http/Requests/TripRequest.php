@@ -18,11 +18,13 @@ class TripRequest extends FormRequest
         return [
             'tanggal' => ['required', 'date'],
             'plat' => ['required', 'string', 'max:255'],
-            'client_id' => ['nullable', 'integer', Rule::exists('clients', 'id')],
+            'client_id' => ['nullable', 'sometimes', 'integer', 'min:1', Rule::exists('clients', 'id')],
             'client_name' => ['nullable', 'string', 'max:255', 'required_without:client_id'],
             'destination_client_id' => [
                 'nullable',
+                'sometimes',
                 'integer',
+                'min:1',
                 Rule::exists('clients', 'id'),
             ],
             'destination_client_name' => [
@@ -33,8 +35,7 @@ class TripRequest extends FormRequest
             'no_surat_jalan' => ['required', 'string', 'max:255', Rule::unique('trips', 'no_surat_jalan')->ignore($this->route('trip'))],
             'items' => ['required', 'array', 'min:1'],
             'items.*.client_good_id' => [
-                'nullable',
-                'integer',
+                'nullable', 'sometimes', 'integer',
                 Rule::exists('client_goods', 'id')->where(
                     fn ($query) => $query->where('client_id', $this->input('client_id')),
                 ),
@@ -63,6 +64,14 @@ class TripRequest extends FormRequest
                         $validator->errors()->add('client_name', 'Client asal wajib diisi untuk outsourcing.');
 
                         return;
+                    }
+                }
+
+                // Validate items - clear errors for empty client_good_id (will create new)
+                $items = $this->input('items', []);
+                foreach ($items as $index => $item) {
+                    if (empty($item['client_good_id'])) {
+                        $validator->errors()->delete("items.{$index}.client_good_id");
                     }
                 }
 
