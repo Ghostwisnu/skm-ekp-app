@@ -31,7 +31,7 @@ class TripRequest extends FormRequest
             'no_surat_jalan' => ['required', 'string', 'max:255', Rule::unique('trips', 'no_surat_jalan')->ignore($this->route('trip'))],
             'items' => ['required', 'array', 'min:1'],
             'items.*.client_good_id' => [
-                'nullable', 'integer',
+                'nullable', 'sometimes', 'integer',
                 Rule::exists('client_goods', 'id')->where(
                     fn ($query) => $query->where('client_id', $this->input('client_id')),
                 ),
@@ -67,7 +67,7 @@ class TripRequest extends FormRequest
                 $items = $this->input('items', []);
                 foreach ($items as $index => $item) {
                     if (empty($item['client_good_id'])) {
-                        $validator->errors()->delete("items.{$index}.client_good_id");
+                        $validator->errors()->forget("items.{$index}.client_good_id");
                     }
                 }
 
