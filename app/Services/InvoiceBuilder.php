@@ -116,7 +116,6 @@ class InvoiceBuilder
             $invoice->update([
                 'subtotal' => $subtotal,
                 'ppn_nominal' => $ppnNominal,
-                'pph_nominal' => $pphNominal,
                 'total' => $subtotal + $ppnNominal - $pphNominal,
             ]);
 
