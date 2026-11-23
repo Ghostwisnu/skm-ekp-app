@@ -69,23 +69,24 @@ export default function TripForm({
         category: category,
         tujuan: trip?.tujuan ?? "",
         items: trip?.items?.map((item: TripItem) => {
-                    // For kontrak, goods belong to destination client; for outsourcing, to source client
-                    const goodsSourceClient = trip?.category === "outsourcing"
-                        ? tripClient
-                        : destinationClient;
-                    return {
-                        client_good_id: item.client_good_id ? String(item.client_good_id) : "",
-                        jenis_barang: item.jenis_barang,
-                        qty_barang: String(item.qty_barang ?? item.tonase_kg),
-                        total_harga:
-                            item.total_harga !== null
-                                ? String(item.total_harga)
-                                : calculatedTotal(
-                                      goodsSourceClient?.goods?.find((good) => good.id === item.client_good_id),
-                                      String(item.qty_barang ?? item.tonase_kg),
-                                  ),
-                    };
-                }) ?? [{ client_good_id: "", jenis_barang: "", qty_barang: "", total_harga: "" }],
+            const goodsSourceClient =
+                trip?.category === "outsourcing" ? tripClient : destinationClient;
+
+            return {
+                client_good_id: item.client_good_id ? String(item.client_good_id) : "",
+                jenis_barang: item.jenis_barang,
+                qty_barang: String(item.qty_barang ?? item.tonase_kg),
+                total_harga:
+                    item.total_harga !== null
+                        ? String(item.total_harga)
+                        : calculatedTotal(
+                              goodsSourceClient?.goods?.find(
+                                  (good) => good.id === item.client_good_id,
+                              ),
+                              String(item.qty_barang ?? item.tonase_kg),
+                          ),
+            };
+        }) ?? [{ client_good_id: "", jenis_barang: "", qty_barang: "", total_harga: "" }],
     });
 
     const error = (key: string): string | undefined =>
@@ -99,10 +100,9 @@ export default function TripForm({
         (vehicle) => vehicle.plat.toLowerCase() === form.data.plat.toLowerCase(),
     );
 
-    // Get the client whose goods should be used based on category
-    const goodsClient = form.data.category === "kontrak"
-        ? selectedDestinationClient
-        : selectedClient;
+    // Kontrak: barang milik client tujuan. Outsourcing: barang milik client asal.
+    const goodsClient =
+        form.data.category === "kontrak" ? selectedDestinationClient : selectedClient;
 
     const updateClientInput = (field: "client" | "destination_client", value: string) => {
         const matchingClient = clients.find(
@@ -131,6 +131,17 @@ export default function TripForm({
             }
 
             return;
+        }
+
+        if (clientId !== form.data.destination_client_id) {
+            form.setData("items", [
+                {
+                    client_good_id: "",
+                    jenis_barang: "",
+                    qty_barang: "",
+                    total_harga: "",
+                },
+            ]);
         }
 
         form.setData("destination_client_name", value);
@@ -422,7 +433,7 @@ export default function TripForm({
                             </div>
                         );
                     })}
-                    {selectedClient && (
+                    {goodsClient && (
                         <p className="text-sm text-muted-foreground">
                             Jenis barang baru akan disimpan ke master client dengan tarif per qty
                             Rp0. Atur tarifnya di menu Client.
