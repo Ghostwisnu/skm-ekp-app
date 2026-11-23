@@ -71,9 +71,9 @@ export default function TripIndex({
                     <Button asChild>
                         <Link href={createTrip.url()}>Tambah Trip</Link>
                     </Button>
-                    <Button asChild variant="outline">
-                        <a href={tripTemplate.url()} download>Unduh Template</a>
-                    </Button>
+                    <a href={tripTemplate.url()} download className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2">
+                        Unduh Template
+                    </a>
                     <Button onClick={() => setIsImportDialogOpen(true)} variant="outline">
                         Import Trip
                     </Button>
