@@ -34,11 +34,13 @@ jobs:
       - name: Skip build (assets already committed)
         run: |
           echo "Build assets already committed in repository"
-          echo "Verifying manifest exists..."
-          if [ ! -f "public/build/manifest.json" ]; then
-            echo "WARNING: manifest.json missing"
+          echo "Verifying no Windows paths in build..."
+          if grep -rq "/Program" public/build/ 2>/dev/null; then
+            echo "ERROR: Windows paths found in build assets!"
+            echo "Run locally: node -e \"const fs=require('fs'); [...].forEach(f=>...\""
+            exit 1
           fi
-          echo "Build assets verified in repository"
+          echo "No Windows paths found - build is clean"
 
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1.0.0
