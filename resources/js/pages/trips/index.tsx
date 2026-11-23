@@ -1,14 +1,7 @@
 import { Link, router } from '@inertiajs/react';
 import { useForm } from '@inertiajs/react';
 import { useState } from 'react';
-import {
-    create as createTrip,
-    destroy as destroyTrip,
-    edit as editTrip,
-    index as tripIndex,
-    downloadTemplate as tripTemplate,
-    importMethod as tripImport,
-} from '@/actions/App/Http/Controllers/TripController';
+import trips from '@/routes/trips';
 import { confirmDelete } from '@/components/confirm-delete';
 import { FilterBar } from '@/components/filter-bar';
 import {
@@ -52,7 +45,7 @@ export default function TripIndex({
         if (importForm.data.file) {
             const formData = new FormData();
             formData.append('file', importForm.data.file);
-            router.post(tripImport.url(), formData, {
+            router.post(trips.import.url(), formData, {
                 preserveScroll: true,
                 onSuccess: () => {
                     setIsImportDialogOpen(false);
@@ -69,9 +62,9 @@ export default function TripIndex({
             actions={
                 <>
                     <Button asChild>
-                        <Link href={createTrip.url()}>Tambah Trip</Link>
+                        <Link href={trips.create.url()}>Tambah Trip</Link>
                     </Button>
-                    <a href={tripTemplate.url()} download className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2">
+                    <a href={trips.template.url()} download className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2">
                         Unduh Template
                     </a>
                     <Button onClick={() => setIsImportDialogOpen(true)} variant="outline">
@@ -81,7 +74,7 @@ export default function TripIndex({
             }
         >
             <FilterBar
-                path={tripIndex.url()}
+                path={trips.index.url()}
                 initial={filters}
                 fields={[
                     { name: 'from', label: 'Dari tanggal', type: 'date' },
@@ -144,7 +137,7 @@ export default function TripIndex({
                                             size="sm"
                                             asChild
                                         >
-                                            <Link href={editTrip.url(trip.id)}>
+                                            <Link href={trips.edit.url(trip.id)}>
                                                 Ubah
                                             </Link>
                                         </Button>
@@ -153,7 +146,7 @@ export default function TripIndex({
                                             size="sm"
                                             onClick={() =>
                                                 confirmDelete(
-                                                    destroyTrip.url(trip.id),
+                                                    trips.destroy.url(trip.id),
                                                     'Hapus trip ini?',
                                                 )
                                             }
@@ -207,4 +200,4 @@ export default function TripIndex({
     );
 }
 
-TripIndex.layout = { breadcrumbs: [{ title: 'Trip', href: tripIndex.url() }] };
+TripIndex.layout = { breadcrumbs: [{ title: 'Trip', href: trips.index.url() }] };
