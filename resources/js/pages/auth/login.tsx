@@ -23,7 +23,7 @@ export default function Login({ status, canResetPassword }: Props) {
             <PasskeyVerify />
 
             <Form
-                action="/ekp/login"
+                action="/login"
                 method="post"
                 resetOnSuccess={['password']}
                 className="flex flex-col gap-6"
