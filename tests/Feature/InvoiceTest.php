@@ -42,7 +42,7 @@ test('create page lists pending items of the client within the period', function
 test('a newly saved trip appears in invoice pending rows for its source client and date', function () {
     $destination = Client::factory()->create();
     $vehicle = Vehicle::factory()->create();
-    $good = ClientGood::factory()->for($this->client)->create([
+    $good = ClientGood::factory()->for($destination)->create([
         'jenis_barang' => 'Barang Invoice',
         'pricing_mode' => 'per_qty',
         'harga' => 2500,
