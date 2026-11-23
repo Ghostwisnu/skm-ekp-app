@@ -24,7 +24,7 @@ class TripController extends Controller
         return Inertia::render('trips/index', [
             'trips' => Trip::query()
                 ->with(['vehicle', 'client', 'destinationClient'])
-                ->select(['id', 'tanggal', 'vehicle_id', 'client_id', 'destination_client_id', 'sopir', 'no_surat_jalan', 'category', 'tujuan'])
+                ->select(['id', 'tanggal', 'vehicle_id', 'client_id', 'destination_client_id', 'sopir', 'no_surat_jalan', 'category', 'tujuan', 'invoice_id'])
                 ->withSum('items as total_qty', 'qty_barang')
                 ->when($filters['from'] ?? null, fn ($query, $from) => $query->whereDate('tanggal', '>=', $from))
                 ->when($filters['to'] ?? null, fn ($query, $to) => $query->whereDate('tanggal', '<=', $to))
