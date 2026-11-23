@@ -92,14 +92,14 @@ function CostDialog({
         form.setData('extras', validExtras);
 
         if (cost) {
-            form.put(dailyCosts.destroy.url({ dailyCost: cost.id }), {
+            form.put(dailyCosts.update.url({ dailyCost: cost.id }), {
                 preserveScroll: true,
                 preserveState: true,
                 onError: (err) => console.log('Error:', err),
                 onSuccess: () => onClose(),
             });
         } else {
-            form.post('/daily-costs', {
+            form.post(dailyCosts.store.url(), {
                 preserveScroll: true,
                 preserveState: true,
                 onError: (err) => console.log('Error:', err),
@@ -343,5 +343,5 @@ export default function DailyCostIndex({
 }
 
 DailyCostIndex.layout = {
-    breadcrumbs: [{ title: 'Biaya Harian', href: '/daily-costs' }],
+    breadcrumbs: [{ title: 'Biaya Harian', href: dailyCosts.index.url() }],
 };

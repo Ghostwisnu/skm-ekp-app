@@ -95,5 +95,5 @@ export default function MonthlyReport({
 }
 
 MonthlyReport.layout = {
-    breadcrumbs: [{ title: 'Laporan Bulanan', href: '/reports/monthly' }],
+    breadcrumbs: [{ title: 'Laporan Bulanan', href: reports.monthly.url() }],
 };

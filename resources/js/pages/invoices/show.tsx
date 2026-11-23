@@ -137,4 +137,4 @@ export default function InvoiceShow({
     );
 }
 
-InvoiceShow.layout = { breadcrumbs: [{ title: "Invoice", href: "/invoices" }] };
+InvoiceShow.layout = { breadcrumbs: [{ title: "Invoice", href: invoices.index.url() }] };

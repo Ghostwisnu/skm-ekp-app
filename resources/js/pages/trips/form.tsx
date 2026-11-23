@@ -466,4 +466,4 @@ export default function TripForm({
     );
 }
 
-TripForm.layout = { breadcrumbs: [{ title: "Trip", href: "/trips" }] };
+TripForm.layout = { breadcrumbs: [{ title: "Trip", href: tripIndex.url() }] };

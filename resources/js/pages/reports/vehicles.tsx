@@ -91,5 +91,5 @@ export default function VehicleReport({
 }
 
 VehicleReport.layout = {
-    breadcrumbs: [{ title: 'Laporan Kinerja Plat', href: '/reports/vehicles' }],
+    breadcrumbs: [{ title: 'Laporan Kinerja Plat', href: reports.vehicles.url() }],
 };

@@ -264,5 +264,5 @@ export default function Users({
 }
 
 Users.layout = {
-    breadcrumbs: [{ title: "Pengguna & Pengaturan", href: "/admin/users" }],
+    breadcrumbs: [{ title: "Pengguna & Pengaturan", href: users.index.url() }],
 };

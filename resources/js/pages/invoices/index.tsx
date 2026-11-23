@@ -107,5 +107,5 @@ export default function InvoiceIndex({
 }
 
 InvoiceIndex.layout = {
-    breadcrumbs: [{ title: 'Invoice', href: '/invoices' }],
+    breadcrumbs: [{ title: 'Invoice', href: invoices.index.url() }],
 };

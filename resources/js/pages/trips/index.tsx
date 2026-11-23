@@ -133,4 +133,4 @@ export default function TripIndex({
     );
 }
 
-TripIndex.layout = { breadcrumbs: [{ title: 'Trip', href: '/trips' }] };
+TripIndex.layout = { breadcrumbs: [{ title: 'Trip', href: trips.index.url() }] };
