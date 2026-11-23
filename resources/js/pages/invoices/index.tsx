@@ -12,7 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { formatDate, formatRupiah } from '@/lib/format';
 import type { Invoice, Option, Paginated } from '@/types/domain';
-import invoices from '@/routes/invoices';
+import invoiceRoutes from '@/routes/invoices';
 
 export default function InvoiceIndex({
     invoices,
@@ -29,12 +29,12 @@ export default function InvoiceIndex({
             description="Invoice per pasangan client asal dan tujuan"
             actions={
                 <Button asChild>
-                    <Link href={invoices.create.url()}>Buat Invoice</Link>
+                    <Link href={invoiceRoutes.create.url()}>Buat Invoice</Link>
                 </Button>
             }
         >
             <FilterBar
-                path={invoices.index.url()}
+                path={invoiceRoutes.index.url()}
                 initial={filters}
                 fields={[
                     {
@@ -63,7 +63,7 @@ export default function InvoiceIndex({
                         <tr key={invoice.id}>
                             <Td>
                                 <Link
-                                    href={invoices.show.url({ invoice: invoice.id })}
+                                    href={invoiceRoutes.show.url({ invoice: invoice.id })}
                                     className="text-primary underline"
                                 >
                                     {invoice.no_invoice}
@@ -107,5 +107,5 @@ export default function InvoiceIndex({
 }
 
 InvoiceIndex.layout = {
-    breadcrumbs: [{ title: 'Invoice', href: invoices.index.url() }],
+    breadcrumbs: [{ title: 'Invoice', href: invoiceRoutes.index.url() }],
 };

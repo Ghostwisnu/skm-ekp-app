@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatDate, formatNumber, formatRupiah } from "@/lib/format";
 import type { Invoice } from "@/types/domain";
-import invoices from '@/routes/invoices';
+import invoiceRoutes from '@/routes/invoices';
 
 type CompanyDetails = {
     name: string;
@@ -32,21 +32,21 @@ export default function InvoiceShow({
             actions={
                 <>
                     <Button variant="outline" asChild>
-                        <a href={invoices.pdf.url({ invoice: invoice.id })}>Cetak PDF</a>
+                        <a href={invoiceRoutes.pdf.url({ invoice: invoice.id })}>Cetak PDF</a>
                     </Button>
                     <Button variant="outline" asChild>
-                        <a href={invoices.excel.url({ invoice: invoice.id })}>Ekspor Excel</a>
+                        <a href={invoiceRoutes.excel.url({ invoice: invoice.id })}>Ekspor Excel</a>
                     </Button>
                     {isDraft && (
                         <>
-                            <Button onClick={() => router.post(invoices.finalize.url({ invoice: invoice.id }))}>
+                            <Button onClick={() => router.post(invoiceRoutes.finalize.url({ invoice: invoice.id }))}>
                                 Finalkan
                             </Button>
                             <Button
                                 variant="destructive"
                                 onClick={() =>
                                     confirmDelete(
-                                        invoices.destroy.url({ invoice: invoice.id }),
+                                        invoiceRoutes.destroy.url({ invoice: invoice.id }),
                                         "Hapus invoice draft ini?",
                                     )
                                 }
@@ -137,4 +137,4 @@ export default function InvoiceShow({
     );
 }
 
-InvoiceShow.layout = { breadcrumbs: [{ title: "Invoice", href: invoices.index.url() }] };
+InvoiceShow.layout = { breadcrumbs: [{ title: "Invoice", href: invoiceRoutes.index.url() }] };

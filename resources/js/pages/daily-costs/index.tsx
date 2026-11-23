@@ -21,7 +21,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { formatDate, formatRupiah } from '@/lib/format';
 import type { DailyCost, Option, Paginated } from '@/types/domain';
-import dailyCosts from '@/routes/daily-costs';
+import dailyCostRoutes from '@/routes/daily-costs';
 
 type ExtraItem = {
     nama_biaya: string;
@@ -92,14 +92,14 @@ function CostDialog({
         form.setData('extras', validExtras);
 
         if (cost) {
-            form.put(dailyCosts.update.url({ dailyCost: cost.id }), {
+            form.put(dailyCostRoutes.update.url({ dailyCost: cost.id }), {
                 preserveScroll: true,
                 preserveState: true,
                 onError: (err) => console.log('Error:', err),
                 onSuccess: () => onClose(),
             });
         } else {
-            form.post(dailyCosts.store.url(), {
+            form.post(dailyCostRoutes.store.url(), {
                 preserveScroll: true,
                 preserveState: true,
                 onError: (err) => console.log('Error:', err),
@@ -254,7 +254,7 @@ export default function DailyCostIndex({
             }
         >
             <FilterBar
-                path={dailyCosts.index.url()}
+                path={dailyCostRoutes.index.url()}
                 initial={filters}
                 fields={[
                     { name: 'from', label: 'Dari tanggal', type: 'date' },
@@ -317,7 +317,7 @@ export default function DailyCostIndex({
                                     className="ml-2"
                                     onClick={() =>
                                         confirmDelete(
-                                            dailyCosts.destroy.url({ dailyCost: cost.id }),
+                                            dailyCostRoutes.destroy.url({ dailyCost: cost.id }),
                                             'Hapus biaya harian ini?',
                                         )
                                     }
@@ -343,5 +343,5 @@ export default function DailyCostIndex({
 }
 
 DailyCostIndex.layout = {
-    breadcrumbs: [{ title: 'Biaya Harian', href: dailyCosts.index.url() }],
+    breadcrumbs: [{ title: 'Biaya Harian', href: dailyCostRoutes.index.url() }],
 };
