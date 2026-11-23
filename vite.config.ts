@@ -8,7 +8,7 @@ import { bunny } from 'laravel-vite-plugin/fonts';
 import { defineConfig, lazyPlugins } from 'vite-plus';
 
 export default defineConfig({
-    base: process.env.VITE_BASE_URL || '/',
+    base: process.env.VITE_BASE_URL || '/build/',
     plugins: lazyPlugins(() => [
         laravel({
             input: ['resources/css/app.css', 'resources/js/app.tsx'],
