@@ -1,9 +1,13 @@
-import { Link } from '@inertiajs/react';
+import { Link, router } from '@inertiajs/react';
+import { useForm } from '@inertiajs/react';
+import { useState } from 'react';
 import {
     create as createTrip,
     destroy as destroyTrip,
     edit as editTrip,
     index as tripIndex,
+    downloadTemplate as tripTemplate,
+    importMethod as tripImport,
 } from '@/actions/App/Http/Controllers/TripController';
 import { confirmDelete } from '@/components/confirm-delete';
 import { FilterBar } from '@/components/filter-bar';
@@ -17,6 +21,13 @@ import {
 import { Pagination } from '@/components/pagination';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogFooter,
+} from '@/components/ui/dialog';
 import { formatDate, formatNumber } from '@/lib/format';
 import type { Option, Paginated, Trip } from '@/types/domain';
 
@@ -31,14 +42,42 @@ export default function TripIndex({
     vehicles: Option[];
     clients: Option[];
 }) {
+    const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
+    const importForm = useForm<{ file: File | null }>({
+        file: null,
+    });
+
+    const handleImportSubmit = (event: React.FormEvent) => {
+        event.preventDefault();
+        if (importForm.data.file) {
+            const formData = new FormData();
+            formData.append('file', importForm.data.file);
+            router.post(tripImport.url(), formData, {
+                preserveScroll: true,
+                onSuccess: () => {
+                    setIsImportDialogOpen(false);
+                    importForm.reset();
+                },
+            });
+        }
+    };
+
     return (
         <PageShell
             title="Trip"
             description="Daftar perjalanan truk"
             actions={
-                <Button asChild>
-                    <Link href={createTrip.url()}>Tambah Trip</Link>
-                </Button>
+                <>
+                    <Button asChild>
+                        <Link href={createTrip.url()}>Tambah Trip</Link>
+                    </Button>
+                    <Button asChild variant="outline">
+                        <a href={tripTemplate.url()} download>Unduh Template</a>
+                    </Button>
+                    <Button onClick={() => setIsImportDialogOpen(true)} variant="outline">
+                        Import Trip
+                    </Button>
+                </>
             }
         >
             <FilterBar
@@ -129,8 +168,43 @@ export default function TripIndex({
                 </tbody>
             </DataTable>
             <Pagination paginator={trips} />
+
+            {/* Import Dialog */}
+            <Dialog open={isImportDialogOpen} onOpenChange={setIsImportDialogOpen}>
+                <DialogContent className="max-w-md">
+                    <DialogHeader>
+                        <DialogTitle>Import Trip</DialogTitle>
+                    </DialogHeader>
+                    <form onSubmit={handleImportSubmit} className="space-y-4">
+                        <div>
+                            <label className="block text-sm font-medium mb-1">File Excel</label>
+                            <input
+                                type="file"
+                                accept=".xlsx,.xls,.csv"
+                                onChange={(e) => {
+                                    importForm.setData('file', e.target.files?.[0] ?? null);
+                                }}
+                                className="block w-full"
+                                required
+                            />
+                        </div>
+                        <DialogFooter>
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={() => setIsImportDialogOpen(false)}
+                            >
+                                Batal
+                            </Button>
+                            <Button type="submit" disabled={importForm.processing}>
+                                Import
+                            </Button>
+                        </DialogFooter>
+                    </form>
+                </DialogContent>
+            </Dialog>
         </PageShell>
     );
 }
 
-TripIndex.layout = { breadcrumbs: [{ title: 'Trip', href: trips.index.url() }] };
+TripIndex.layout = { breadcrumbs: [{ title: 'Trip', href: tripIndex.url() }] };

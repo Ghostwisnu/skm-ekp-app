@@ -1,3 +1,4 @@
+import { router } from '@inertiajs/react';
 import { useForm } from '@inertiajs/react';
 import { useState } from 'react';
 import { confirmDelete } from '@/components/confirm-delete';
@@ -17,6 +18,7 @@ import {
     DialogContent,
     DialogHeader,
     DialogTitle,
+    DialogFooter,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { formatDate, formatRupiah } from '@/lib/format';
@@ -242,15 +244,42 @@ export default function DailyCostIndex({
     const [dialog, setDialog] = useState<{ cost: DailyCost | null } | null>(
         null,
     );
+    const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
+    const importForm = useForm<{ file: File | null }>({
+        file: null,
+    });
+
+    const handleImportSubmit = (event: React.FormEvent) => {
+        event.preventDefault();
+        if (importForm.data.file) {
+            const formData = new FormData();
+            formData.append('file', importForm.data.file);
+            router.post(dailyCostRoutes.import.url(), formData, {
+                preserveScroll: true,
+                onSuccess: () => {
+                    setIsImportDialogOpen(false);
+                    importForm.reset();
+                },
+            });
+        }
+    };
 
     return (
         <PageShell
             title="Biaya Harian"
             description="Uang jalan per hari per plat"
             actions={
-                <Button onClick={() => setDialog({ cost: null })}>
-                    Tambah Biaya Harian
-                </Button>
+                <>
+                    <Button onClick={() => setDialog({ cost: null })}>
+                        Tambah Biaya Harian
+                    </Button>
+                    <Button asChild variant="outline">
+                        <a href={dailyCostRoutes.template.url()} download>Unduh Template</a>
+                    </Button>
+                    <Button onClick={() => setIsImportDialogOpen(true)} variant="outline">
+                        Import Biaya Harian
+                    </Button>
+                </>
             }
         >
             <FilterBar
@@ -338,6 +367,41 @@ export default function DailyCostIndex({
                     onClose={() => setDialog(null)}
                 />
             )}
+
+            {/* Import Dialog */}
+            <Dialog open={isImportDialogOpen} onOpenChange={setIsImportDialogOpen}>
+                <DialogContent className="max-w-md">
+                    <DialogHeader>
+                        <DialogTitle>Import Biaya Harian</DialogTitle>
+                    </DialogHeader>
+                    <form onSubmit={handleImportSubmit} className="space-y-4">
+                        <div>
+                            <label className="block text-sm font-medium mb-1">File Excel</label>
+                            <input
+                                type="file"
+                                accept=".xlsx,.xls,.csv"
+                                onChange={(e) => {
+                                    importForm.setData('file', e.target.files?.[0] ?? null);
+                                }}
+                                className="block w-full"
+                                required
+                            />
+                        </div>
+                        <DialogFooter>
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={() => setIsImportDialogOpen(false)}
+                            >
+                                Batal
+                            </Button>
+                            <Button type="submit" disabled={importForm.processing}>
+                                Import
+                            </Button>
+                        </DialogFooter>
+                    </form>
+                </DialogContent>
+            </Dialog>
         </PageShell>
     );
 }
