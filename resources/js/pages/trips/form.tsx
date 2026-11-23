@@ -120,6 +120,18 @@ export default function TripForm({
 
         form.setData("destination_client_name", value);
         form.setData("destination_client_id", clientId);
+
+        // If destination client is set but source client changed, clear items to avoid invalid goods
+        if (form.data.destination_client_id && clientId !== form.data.client_id) {
+            form.setData("items", [
+                {
+                    client_good_id: "",
+                    jenis_barang: "",
+                    qty_barang: "",
+                    total_harga: "",
+                },
+            ]);
+        }
     };
 
     const setItem = (index: number, key: keyof FormItem, value: string) => {
@@ -204,7 +216,11 @@ export default function TripForm({
                         </datalist>
                     </Field>
                     <Field
-                        label={<><strong>Client asal</strong> <RequiredBadge /></>}
+                        label={
+                            form.data.category === "outsourcing"
+                                ? <><strong>Client</strong> <RequiredBadge /></>
+                                : <><strong>Client asal</strong> <RequiredBadge /></>
+                        }
                         error={form.errors.client_name ?? form.errors.client_id}
                     >
                         <Input
@@ -223,6 +239,27 @@ export default function TripForm({
                                 if (next === "outsourcing") {
                                     form.setData("destination_client_id", "");
                                     form.setData("destination_client_name", "");
+                                    form.setData("tujuan", "");
+                                    // Reset items when switching to outsourcing
+                                    form.setData("items", [
+                                        {
+                                            client_good_id: "",
+                                            jenis_barang: "",
+                                            qty_barang: "",
+                                            total_harga: "",
+                                        },
+                                    ]);
+                                } else {
+                                    // Kontrak: clear tujuan, reset items (will use destination client goods)
+                                    form.setData("tujuan", "");
+                                    form.setData("items", [
+                                        {
+                                            client_good_id: "",
+                                            jenis_barang: "",
+                                            qty_barang: "",
+                                            total_harga: "",
+                                        },
+                                    ]);
                                 }
                             }}
                         >

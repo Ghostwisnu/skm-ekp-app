@@ -16,12 +16,13 @@ function tripPayload(array $overrides = []): array
     $client = Client::factory()->create();
     $destinationClient = Client::factory()->create();
     $vehicle = Vehicle::factory()->create();
-    $semen = ClientGood::factory()->for($client)->create([
+    // For kontrak category, goods belong to destination client
+    $semen = ClientGood::factory()->for($destinationClient)->create([
         'jenis_barang' => 'Semen',
         'pricing_mode' => 'per_qty',
         'harga' => 1000,
     ]);
-    $pupuk = ClientGood::factory()->for($client)->create([
+    $pupuk = ClientGood::factory()->for($destinationClient)->create([
         'jenis_barang' => 'Pupuk',
         'pricing_mode' => 'flat_trip',
         'harga' => 500000,
@@ -76,12 +77,13 @@ test('a trip creates a vehicle and client good when their values are entered man
     $this->post('/trips', $payload)->assertRedirect(route('trips.index'));
 
     $trip = Trip::query()->firstOrFail();
+    // For kontrak, new goods are associated with destination client
     $good = ClientGood::query()
-        ->where('client_id', $trip->client_id)
+        ->where('client_id', $trip->destination_client_id)
         ->where('jenis_barang', 'Barang Baru')
         ->firstOrFail();
     $otherGood = ClientGood::query()
-        ->where('client_id', $trip->client_id)
+        ->where('client_id', $trip->destination_client_id)
         ->where('jenis_barang', 'Barang Lain')
         ->firstOrFail();
 
@@ -135,7 +137,10 @@ test('a trip cannot use a good configured for another client', function () {
 test('a trip can be updated and its items replaced', function () {
     $this->post('/trips', tripPayload());
     $trip = Trip::first();
-    $newGood = ClientGood::factory()->for($trip->client)->create([
+    $trip->load('destinationClient');
+    // For kontrak, new goods are associated with destination client
+    $newGood = ClientGood::factory()->create([
+        'client_id' => $trip->destination_client_id,
         'jenis_barang' => 'Beras',
         'harga' => 2000,
     ]);
@@ -194,4 +199,33 @@ test('the trip list can be filtered by vehicle', function () {
 
     $this->get('/trips?vehicle_id='.$trip->vehicle_id)
         ->assertInertia(fn ($page) => $page->component('trips/index')->has('trips.data', 1));
+});
+
+test('a trip can be created with string IDs (real form submission)', function () {
+    // This test verifies that string IDs from Inertia form are properly handled
+    $client = Client::factory()->create();
+    $destinationClient = Client::factory()->create();
+    $vehicle = Vehicle::factory()->create();
+    $good = ClientGood::factory()->for($destinationClient)->create([
+        'jenis_barang' => 'Semen',
+        'pricing_mode' => 'per_qty',
+        'harga' => 1000,
+    ]);
+
+    // Send all IDs as strings (how Inertia forms actually send them)
+    $this->post('/trips', [
+        'tanggal' => '2026-11-01',
+        'plat' => $vehicle->plat,
+        'client_id' => (string) $client->id,  // String, not integer
+        'destination_client_id' => (string) $destinationClient->id,  // String
+        'no_surat_jalan' => 'SJ-STRING-TEST',
+        'category' => 'kontrak',
+        'items' => [[
+            'client_good_id' => (string) $good->id,  // String
+            'jenis_barang' => 'Semen',
+            'qty_barang' => '5',
+        ]],
+   ])->assertRedirect(route('trips.index'));
+
+    expect(Trip::query()->count())->toBe(1);
 });

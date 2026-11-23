@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Models\Client;
+use App\Models\ClientGood;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -32,9 +33,7 @@ class TripRequest extends FormRequest
             'items' => ['required', 'array', 'min:1'],
             'items.*.client_good_id' => [
                 'nullable', 'sometimes', 'integer',
-                Rule::exists('client_goods', 'id')->where(
-                    fn ($query) => $query->where('client_id', $this->input('client_id')),
-                ),
+                Rule::exists('client_goods', 'id'),
             ],
             'items.*.jenis_barang' => ['required', 'string', 'max:255', 'distinct'],
             'items.*.qty_barang' => ['required', 'numeric', 'min:0.01', 'max:9999999999'],
@@ -109,6 +108,23 @@ class TripRequest extends FormRequest
                             : 'destination_client_name';
 
                         $validator->errors()->add($errorKey, 'Client asal dan tujuan harus berbeda.');
+                    }
+
+                    // Validate client_good_id belongs to the correct client based on category
+                    $correctClientId = $category === 'kontrak' ? $destinationClientId : $clientId;
+                    foreach ($items as $index => $item) {
+                        $goodId = $item['client_good_id'] ?? null;
+                        if (! empty($goodId)) {
+                            $good = ClientGood::query()->find($goodId);
+                            // Normalize to int for comparison (form sends strings via Inertia)
+                            $correctClientIdNormalized = $correctClientId !== null ? (int) $correctClientId : null;
+                            if ($good && $correctClientIdNormalized !== null && (int) $good->client_id !== $correctClientIdNormalized) {
+                                $validator->errors()->add(
+                                    "items.{$index}.client_good_id",
+                                    'Jenis barang tidak sesuai dengan client yang tepat.',
+                                );
+                            }
+                        }
                     }
                 }
             },

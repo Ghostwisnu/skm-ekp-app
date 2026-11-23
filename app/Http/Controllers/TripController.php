@@ -222,16 +222,21 @@ class TripController extends Controller
                 : $sourceClient->nama,
         };
 
-        return array_map(function (array $item, int $index) use ($clientId, $route): array {
+        // For kontrak, goods belong to destination client; for outsourcing, goods belong to source client
+        $goodsClientId = $category === 'kontrak' ? $destinationClientId : $clientId;
+        $goodsClient = $goodsClientId ? Client::query()->findOrFail($goodsClientId) : $sourceClient;
+
+        return array_map(function (array $item, int $index) use ($goodsClientId, $route): array {
             // client_good_id can be empty string from frontend - treat as "create new"
             $hasExistingGoodId = ! empty($item['client_good_id']);
 
+            // For kontrak, find good from destination client; for outsourcing, from source client
             $good = $hasExistingGoodId
                 ? ClientGood::query()
-                    ->where('client_id', $clientId)
+                    ->where('client_id', $goodsClientId)
                     ->find($item['client_good_id'])
                 : ClientGood::query()->firstOrCreate(
-                    ['client_id' => $clientId, 'jenis_barang' => $item['jenis_barang']],
+                    ['client_id' => $goodsClientId, 'jenis_barang' => $item['jenis_barang']],
                     ['pricing_mode' => 'per_qty', 'harga' => 0],
                 );
 
