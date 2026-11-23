@@ -2,18 +2,22 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\TripImportTemplate;
 use App\Http\Requests\TripRequest;
+use App\Imports\TripImport;
 use App\Models\Client;
 use App\Models\ClientGood;
 use App\Models\Trip;
 use App\Models\Vehicle;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Http\ImportResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
+use Maatwebsite\Excel\Excel;
 
 class TripController extends Controller
 {
@@ -166,6 +170,32 @@ class TripController extends Controller
 
         $trip->delete();
         Inertia::flash('toast', ['type' => 'success', 'message' => 'Trip dihapus.']);
+
+        return to_route('trips.index');
+    }
+
+    /**
+     * Download Trip import template.
+     */
+    public function downloadTemplate(): ImportResponse
+    {
+        return (new TripImportTemplate)->download('trip-import-template.xlsx');
+    }
+
+    /**
+     * Import trips from Excel file.
+     */
+    public function import(Request $request): RedirectResponse
+    {
+        $request->validate([
+            'file' => 'required|file|mimes:xlsx,xls,csv',
+        ]);
+
+        $path = $request->file('file')->getRealPath();
+
+        (new TripImport)->import($path, Excel::XLSX);
+
+        Inertia::flash('toast', ['type' => 'success', 'message' => 'Import trip berhasil.']);
 
         return to_route('trips.index');
     }

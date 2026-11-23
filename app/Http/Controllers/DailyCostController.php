@@ -2,13 +2,17 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\DailyCostImportTemplate;
 use App\Http\Requests\DailyCostRequest;
+use App\Imports\DailyCostImport;
 use App\Models\DailyCost;
 use App\Models\Vehicle;
+use Illuminate\Http\ImportResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
+use Maatwebsite\Excel\Excel;
 
 class DailyCostController extends Controller
 {
@@ -113,6 +117,32 @@ class DailyCostController extends Controller
         $dailyCost->delete();
 
         Inertia::flash('toast', ['type' => 'success', 'message' => 'Biaya harian dihapus.']);
+
+        return back();
+    }
+
+    /**
+     * Download Daily Cost import template.
+     */
+    public function downloadTemplate(): ImportResponse
+    {
+        return (new DailyCostImportTemplate)->download('daily-cost-import-template.xlsx');
+    }
+
+    /**
+     * Import daily costs from Excel file.
+     */
+    public function import(Request $request): RedirectResponse
+    {
+        $request->validate([
+            'file' => 'required|file|mimes:xlsx,xls,csv',
+        ]);
+
+        $path = $request->file('file')->getRealPath();
+
+        (new DailyCostImport)->import($path, Excel::XLSX);
+
+        Inertia::flash('toast', ['type' => 'success', 'message' => 'Import biaya harian berhasil.']);
 
         return back();
     }

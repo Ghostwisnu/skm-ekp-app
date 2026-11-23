@@ -25,8 +25,14 @@ Route::middleware('auth')->group(function () {
 
     Route::middleware('role:admin,operator')->group(function () {
         Route::resource('trips', TripController::class)->except('show');
+        Route::get('trips/template', [TripController::class, 'downloadTemplate'])->name('trips.template');
+        Route::post('trips/import', [TripController::class, 'import'])->name('trips.import');
+
         Route::resource('daily-costs', DailyCostController::class)->only(['index', 'store', 'update', 'destroy'])
             ->parameters(['daily-costs' => 'dailyCost']);
+        Route::get('daily-costs/template', [DailyCostController::class, 'downloadTemplate'])->name('daily-costs.template');
+        Route::post('daily-costs/import', [DailyCostController::class, 'import'])->name('daily-costs.import');
+
         Route::resource('clients', ClientController::class)->only(['store', 'update', 'destroy']);
         Route::resource('vehicles', VehicleController::class)->only(['store', 'update', 'destroy']);
     });
