@@ -22,7 +22,7 @@ use Illuminate\Support\Carbon;
  * @property string $category
  * @property string|null $tujuan
  */
-#[Fillable(['tanggal', 'vehicle_id', 'client_id', 'destination_client_id', 'sopir', 'no_surat_jalan', 'category', 'tujuan'])]
+#[Fillable(['tanggal', 'vehicle_id', 'client_id', 'destination_client_id', 'sopir', 'no_surat_jalan', 'category', 'tujuan', 'invoice_id'])]
 class Trip extends Model
 {
     /** @use HasFactory<TripFactory> */
