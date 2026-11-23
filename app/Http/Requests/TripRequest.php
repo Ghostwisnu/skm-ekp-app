@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Models\Client;
+use App\Models\ClientGood;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -32,9 +33,7 @@ class TripRequest extends FormRequest
             'items' => ['required', 'array', 'min:1'],
             'items.*.client_good_id' => [
                 'nullable', 'sometimes', 'integer',
-                Rule::exists('client_goods', 'id')->where(
-                    fn ($query) => $query->where('client_id', $this->input('client_id')),
-                ),
+                Rule::exists('client_goods', 'id'),
             ],
             'items.*.jenis_barang' => ['required', 'string', 'max:255', 'distinct'],
             'items.*.qty_barang' => ['required', 'numeric', 'min:0.01', 'max:9999999999'],
@@ -57,7 +56,7 @@ class TripRequest extends FormRequest
                 if ($category === 'outsourcing') {
                     $clientName = trim((string) $this->input('client_name'));
                     if (empty($clientName)) {
-                        $validator->errors()->add('client_name', 'Client asal wajib diisi untuk outsourcing.');
+                        $validator->errors()->add('client_name', 'Client wajib diisi untuk outsourcing.');
 
                         return;
                     }
@@ -109,6 +108,35 @@ class TripRequest extends FormRequest
                             : 'destination_client_name';
 
                         $validator->errors()->add($errorKey, 'Client asal dan tujuan harus berbeda.');
+                    }
+                }
+
+                // Validate client_good_id belongs to the correct client based on category
+                $clientId = $this->input('client_id');
+                $clientName = trim((string) $this->input('client_name'));
+                if ($clientId === null && $clientName !== '') {
+                    $clientId = Client::query()->where('nama', $clientName)->value('id');
+                }
+
+                $destinationClientId = $this->input('destination_client_id');
+                $destinationClientName = trim((string) $this->input('destination_client_name'));
+                if ($destinationClientId === null && $destinationClientName !== '') {
+                    $destinationClientId = Client::query()->where('nama', $destinationClientName)->value('id');
+                }
+
+                // Determine which client owns the goods based on category
+                $correctClientId = $category === 'kontrak' ? $destinationClientId : $clientId;
+
+                foreach ($items as $index => $item) {
+                    $goodId = $item['client_good_id'] ?? null;
+                    if (! empty($goodId)) {
+                        $good = ClientGood::query()->find($goodId);
+                        if ($good && $good->client_id !== $correctClientId) {
+                            $validator->errors()->add(
+                                "items.{$index}.client_good_id",
+                                'Jenis barang tidak sesuai dengan client yang tepat.',
+                            );
+                        }
                     }
                 }
             },

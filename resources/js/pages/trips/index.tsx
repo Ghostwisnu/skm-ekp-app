@@ -82,8 +82,9 @@ export default function TripIndex({
                             <Td>{trip.vehicle?.plat}</Td>
                             <Td>{trip.vehicle?.nama_supir ?? trip.sopir}</Td>
                             <Td>
-                                {trip.client?.nama} →{' '}
-                                {trip.destination_client?.nama ?? '-'}
+                                {trip.category === "outsourcing"
+                                    ? `${trip.client?.nama} → ${trip.tujuan ?? '-'}`
+                                    : `${trip.client?.nama} → ${trip.destination_client?.nama ?? '-'}`}
                             </Td>
                             <Td>{trip.no_surat_jalan}</Td>
                             <Td right>{formatNumber(trip.total_qty)}</Td>

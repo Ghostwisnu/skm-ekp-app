@@ -16,12 +16,13 @@ function tripPayload(array $overrides = []): array
     $client = Client::factory()->create();
     $destinationClient = Client::factory()->create();
     $vehicle = Vehicle::factory()->create();
-    $semen = ClientGood::factory()->for($client)->create([
+    // For kontrak category, goods belong to destination client
+    $semen = ClientGood::factory()->for($destinationClient)->create([
         'jenis_barang' => 'Semen',
         'pricing_mode' => 'per_qty',
         'harga' => 1000,
     ]);
-    $pupuk = ClientGood::factory()->for($client)->create([
+    $pupuk = ClientGood::factory()->for($destinationClient)->create([
         'jenis_barang' => 'Pupuk',
         'pricing_mode' => 'flat_trip',
         'harga' => 500000,
@@ -76,12 +77,13 @@ test('a trip creates a vehicle and client good when their values are entered man
     $this->post('/trips', $payload)->assertRedirect(route('trips.index'));
 
     $trip = Trip::query()->firstOrFail();
+    // For kontrak, new goods are associated with destination client
     $good = ClientGood::query()
-        ->where('client_id', $trip->client_id)
+        ->where('client_id', $trip->destination_client_id)
         ->where('jenis_barang', 'Barang Baru')
         ->firstOrFail();
     $otherGood = ClientGood::query()
-        ->where('client_id', $trip->client_id)
+        ->where('client_id', $trip->destination_client_id)
         ->where('jenis_barang', 'Barang Lain')
         ->firstOrFail();
 
@@ -135,7 +137,10 @@ test('a trip cannot use a good configured for another client', function () {
 test('a trip can be updated and its items replaced', function () {
     $this->post('/trips', tripPayload());
     $trip = Trip::first();
-    $newGood = ClientGood::factory()->for($trip->client)->create([
+    $trip->load('destinationClient');
+    // For kontrak, new goods are associated with destination client
+    $newGood = ClientGood::factory()->create([
+        'client_id' => $trip->destination_client_id,
         'jenis_barang' => 'Beras',
         'harga' => 2000,
     ]);
