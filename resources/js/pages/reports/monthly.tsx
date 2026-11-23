@@ -9,6 +9,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { formatNumber, formatRupiah } from '@/lib/format';
 import type { MonthlyReportData, Option } from '@/types/domain';
+import reports from '@/routes/reports';
 
 export default function MonthlyReport({
     data,
@@ -26,13 +27,11 @@ export default function MonthlyReport({
             title="Laporan Bulanan"
             description={`Ringkasan harian Bulan ${month} Tahun ${year}`}
             actions={
-                <Button variant="outline" asChild>
-                    <a href="/reports/monthly/pdf">Cetak PDF</a>
-                </Button>
+                <></>
             }
         >
             <FilterBar
-                path="/reports/monthly"
+                path={reports.monthly.url()}
                 initial={filters}
                 fields={[
                     { name: 'month', label: 'Bulan', type: 'select', options: [
