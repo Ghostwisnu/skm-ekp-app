@@ -135,6 +135,18 @@ export default function TripForm({
 
         form.setData("destination_client_name", value);
         form.setData("destination_client_id", clientId);
+
+        // If destination client is set but source client changed, clear items to avoid invalid goods
+        if (form.data.destination_client_id && clientId !== form.data.client_id) {
+            form.setData("items", [
+                {
+                    client_good_id: "",
+                    jenis_barang: "",
+                    qty_barang: "",
+                    total_harga: "",
+                },
+            ]);
+        }
     };
 
     const setItem = (index: number, key: keyof FormItem, value: string) => {

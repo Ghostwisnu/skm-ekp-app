@@ -109,6 +109,23 @@ class TripRequest extends FormRequest
 
                         $validator->errors()->add($errorKey, 'Client asal dan tujuan harus berbeda.');
                     }
+
+                    // Validate client_good_id belongs to the correct client based on category
+                    $correctClientId = $category === 'kontrak' ? $destinationClientId : $clientId;
+                    foreach ($items as $index => $item) {
+                        $goodId = $item['client_good_id'] ?? null;
+                        if (! empty($goodId)) {
+                            $good = ClientGood::query()->find($goodId);
+                            // Normalize to int for comparison (form sends strings via Inertia)
+                            $correctClientIdNormalized = $correctClientId !== null ? (int) $correctClientId : null;
+                            if ($good && $correctClientIdNormalized !== null && (int) $good->client_id !== $correctClientIdNormalized) {
+                                $validator->errors()->add(
+                                    "items.{$index}.client_good_id",
+                                    'Jenis barang tidak sesuai dengan client yang tepat.',
+                                );
+                            }
+                        }
+                    }
                 }
 
                 // Validate client_good_id belongs to the correct client based on category

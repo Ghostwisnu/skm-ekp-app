@@ -200,3 +200,32 @@ test('the trip list can be filtered by vehicle', function () {
     $this->get('/trips?vehicle_id='.$trip->vehicle_id)
         ->assertInertia(fn ($page) => $page->component('trips/index')->has('trips.data', 1));
 });
+
+test('a trip can be created with string IDs (real form submission)', function () {
+    // This test verifies that string IDs from Inertia form are properly handled
+    $client = Client::factory()->create();
+    $destinationClient = Client::factory()->create();
+    $vehicle = Vehicle::factory()->create();
+    $good = ClientGood::factory()->for($destinationClient)->create([
+        'jenis_barang' => 'Semen',
+        'pricing_mode' => 'per_qty',
+        'harga' => 1000,
+    ]);
+
+    // Send all IDs as strings (how Inertia forms actually send them)
+    $this->post('/trips', [
+        'tanggal' => '2026-11-01',
+        'plat' => $vehicle->plat,
+        'client_id' => (string) $client->id,  // String, not integer
+        'destination_client_id' => (string) $destinationClient->id,  // String
+        'no_surat_jalan' => 'SJ-STRING-TEST',
+        'category' => 'kontrak',
+        'items' => [[
+            'client_good_id' => (string) $good->id,  // String
+            'jenis_barang' => 'Semen',
+            'qty_barang' => '5',
+        ]],
+   ])->assertRedirect(route('trips.index'));
+
+    expect(Trip::query()->count())->toBe(1);
+});
