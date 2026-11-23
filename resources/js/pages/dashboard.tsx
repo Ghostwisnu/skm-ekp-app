@@ -10,7 +10,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { FilterBar } from '@/components/filter-bar';
 import { formatDate, formatNumber, formatRupiah } from '@/lib/format';
 import { dashboard } from '@/routes';
-import trips from '@/routes/trips';
+import {
+    index as tripIndex,
+} from '@/actions/App/Http/Controllers/TripController';
 import type { Trip } from '@/types/domain';
 
 type Stats = {
@@ -91,7 +93,7 @@ export default function Dashboard({
                     ))}
                 </tbody>
             </DataTable>
-            <Link href={trips.index.url()} className="text-sm text-primary underline">
+            <Link href={tripIndex.url()} className="text-sm text-primary underline">
                 Lihat semua trip
             </Link>
         </PageShell>
