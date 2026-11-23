@@ -57,7 +57,7 @@ export default function TripForm({
     );
     const category = trip?.category ?? "kontrak";
     const form = useForm<FormData>({
-        tanggal: trip?.fecha ?? new Date().toISOString().slice(0, 10),
+        tanggal: trip?.tanggal ?? new Date().toISOString().slice(0, 10),
         plat: trip?.vehicle?.plat ?? "",
         client_id: trip ? String(trip.client_id) : "",
         client_name: tripClient?.nama ?? "",
@@ -68,27 +68,42 @@ export default function TripForm({
         no_surat_jalan: trip?.no_surat_jalan ?? "",
         category: category,
         tujuan: trip?.tujuan ?? "",
-        items: trip?.items?.map((item: TripItem) => ({
-            client_good_id: item.client_good_id ? String(item.client_good_id) : "",
-            jenis_barang: item.jenis_barang,
-            qty_barang: String(item.qty_barang ?? item.tonase_kg),
-            total_harga:
-                item.total_harga !== null
-                    ? String(item.total_harga)
-                    : calculatedTotal(
-                          tripClient?.goods?.find((good) => good.id === item.client_good_id),
-                          String(item.qty_barang ?? item.tonase_kg),
-                      ),
-        })) ?? [{ client_good_id: "", jenis_barang: "", qty_barang: "", total_harga: "" }],
+        items: trip?.items?.map((item: TripItem) => {
+                    // For kontrak, goods belong to destination client; for outsourcing, to source client
+                    const goodsSourceClient = trip?.category === "outsourcing"
+                        ? tripClient
+                        : destinationClient;
+                    return {
+                        client_good_id: item.client_good_id ? String(item.client_good_id) : "",
+                        jenis_barang: item.jenis_barang,
+                        qty_barang: String(item.qty_barang ?? item.tonase_kg),
+                        total_harga:
+                            item.total_harga !== null
+                                ? String(item.total_harga)
+                                : calculatedTotal(
+                                      goodsSourceClient?.goods?.find((good) => good.id === item.client_good_id),
+                                      String(item.qty_barang ?? item.tonase_kg),
+                                  ),
+                    };
+                }) ?? [{ client_good_id: "", jenis_barang: "", qty_barang: "", total_harga: "" }],
     });
 
     const error = (key: string): string | undefined =>
         (form.errors as Record<string, string | undefined>)[key];
 
     const selectedClient = clients.find((client) => String(client.id) === form.data.client_id);
+    const selectedDestinationClient = clients.find(
+        (client) => String(client.id) === form.data.destination_client_id,
+    );
     const selectedVehicle = vehicles.find(
         (vehicle) => vehicle.plat.toLowerCase() === form.data.plat.toLowerCase(),
     );
+
+    // Get the client whose goods should be used based on category
+    const goodsClient = form.data.category === "kontrak"
+        ? selectedDestinationClient
+        : selectedClient;
+
     const updateClientInput = (field: "client" | "destination_client", value: string) => {
         const matchingClient = clients.find(
             (client) => client.nama.trim().toLowerCase() === value.trim().toLowerCase(),
@@ -145,13 +160,13 @@ export default function TripForm({
                 const updatedItem = { ...item, [key]: value };
                 const selectedGood =
                     key === "jenis_barang"
-                        ? selectedClient?.goods?.find(
+                        ? goodsClient?.goods?.find(
                               (good) => good.jenis_barang.toLowerCase() === value.toLowerCase(),
                           )
-                        : (selectedClient?.goods?.find(
+                        : (goodsClient?.goods?.find(
                               (good) => String(good.id) === item.client_good_id,
                           ) ??
-                          selectedClient?.goods?.find(
+                          goodsClient?.goods?.find(
                               (good) =>
                                   good.jenis_barang.toLowerCase() ===
                                   item.jenis_barang.toLowerCase(),
@@ -159,7 +174,7 @@ export default function TripForm({
 
                 if (key === "jenis_barang") {
                     updatedItem.client_good_id =
-                        selectedClient?.goods
+                        goodsClient?.goods
                             ?.find(
                                 (good) => good.jenis_barang.toLowerCase() === value.toLowerCase(),
                             )
@@ -311,7 +326,7 @@ export default function TripForm({
                             type="button"
                             variant="outline"
                             size="sm"
-                            disabled={!selectedClient}
+                            disabled={!goodsClient}
                             onClick={() =>
                                 form.setData("items", [
                                     ...form.data.items,
@@ -329,7 +344,7 @@ export default function TripForm({
                     </div>
                     {error("items") && <p className="text-sm text-red-600">{error("items")}</p>}
                     {form.data.items.map((item, index) => {
-                        const selectedGood = selectedClient?.goods?.find(
+                        const selectedGood = goodsClient?.goods?.find(
                             (good: ClientGood) =>
                                 String(good.id) === item.client_good_id ||
                                 good.jenis_barang.toLowerCase() === item.jenis_barang.toLowerCase(),
@@ -355,7 +370,7 @@ export default function TripForm({
                                         placeholder="Pilih atau ketik jenis barang"
                                     />
                                     <datalist id={`trip-goods-${index}`}>
-                                        {selectedClient?.goods?.map((good) => (
+                                        {goodsClient?.goods?.map((good) => (
                                             <option key={good.id} value={good.jenis_barang} />
                                         ))}
                                     </datalist>

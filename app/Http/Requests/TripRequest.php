@@ -56,7 +56,7 @@ class TripRequest extends FormRequest
                 if ($category === 'outsourcing') {
                     $clientName = trim((string) $this->input('client_name'));
                     if (empty($clientName)) {
-                        $validator->errors()->add('client_name', 'Client asal wajib diisi untuk outsourcing.');
+                        $validator->errors()->add('client_name', 'Client wajib diisi untuk outsourcing.');
 
                         return;
                     }
@@ -124,6 +124,35 @@ class TripRequest extends FormRequest
                                     'Jenis barang tidak sesuai dengan client yang tepat.',
                                 );
                             }
+                        }
+                    }
+                }
+
+                // Validate client_good_id belongs to the correct client based on category
+                $clientId = $this->input('client_id');
+                $clientName = trim((string) $this->input('client_name'));
+                if ($clientId === null && $clientName !== '') {
+                    $clientId = Client::query()->where('nama', $clientName)->value('id');
+                }
+
+                $destinationClientId = $this->input('destination_client_id');
+                $destinationClientName = trim((string) $this->input('destination_client_name'));
+                if ($destinationClientId === null && $destinationClientName !== '') {
+                    $destinationClientId = Client::query()->where('nama', $destinationClientName)->value('id');
+                }
+
+                // Determine which client owns the goods based on category
+                $correctClientId = $category === 'kontrak' ? $destinationClientId : $clientId;
+
+                foreach ($items as $index => $item) {
+                    $goodId = $item['client_good_id'] ?? null;
+                    if (! empty($goodId)) {
+                        $good = ClientGood::query()->find($goodId);
+                        if ($good && $good->client_id !== $correctClientId) {
+                            $validator->errors()->add(
+                                "items.{$index}.client_good_id",
+                                'Jenis barang tidak sesuai dengan client yang tepat.',
+                            );
                         }
                     }
                 }
