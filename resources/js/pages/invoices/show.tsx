@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatDate, formatNumber, formatRupiah } from "@/lib/format";
 import type { Invoice } from "@/types/domain";
+import invoices from '@/routes/invoices';
 
 type CompanyDetails = {
     name: string;
@@ -31,21 +32,21 @@ export default function InvoiceShow({
             actions={
                 <>
                     <Button variant="outline" asChild>
-                        <a href={`${basePath}/invoices/${invoice.id}/pdf`}>Cetak PDF</a>
+                        <a href={invoices.pdf.url({ invoice: invoice.id })}>Cetak PDF</a>
                     </Button>
                     <Button variant="outline" asChild>
-                        <a href={`${basePath}/invoices/${invoice.id}/excel`}>Ekspor Excel</a>
+                        <a href={invoices.excel.url({ invoice: invoice.id })}>Ekspor Excel</a>
                     </Button>
                     {isDraft && (
                         <>
-                            <Button onClick={() => router.post(`/invoices/${invoice.id}/finalize`)}>
+                            <Button onClick={() => router.post(invoices.finalize.url({ invoice: invoice.id }))}>
                                 Finalkan
                             </Button>
                             <Button
                                 variant="destructive"
                                 onClick={() =>
                                     confirmDelete(
-                                        `/invoices/${invoice.id}`,
+                                        invoices.destroy.url({ invoice: invoice.id }),
                                         "Hapus invoice draft ini?",
                                     )
                                 }

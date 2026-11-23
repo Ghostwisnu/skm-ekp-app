@@ -12,6 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { formatDate, formatRupiah } from '@/lib/format';
 import type { Invoice, Option, Paginated } from '@/types/domain';
+import invoices from '@/routes/invoices';
 
 export default function InvoiceIndex({
     invoices,
@@ -28,12 +29,12 @@ export default function InvoiceIndex({
             description="Invoice per pasangan client asal dan tujuan"
             actions={
                 <Button asChild>
-                    <Link href="/invoices/create">Buat Invoice</Link>
+                    <Link href={invoices.create.url()}>Buat Invoice</Link>
                 </Button>
             }
         >
             <FilterBar
-                path="/invoices"
+                path={invoices.index.url()}
                 initial={filters}
                 fields={[
                     {
@@ -62,7 +63,7 @@ export default function InvoiceIndex({
                         <tr key={invoice.id}>
                             <Td>
                                 <Link
-                                    href={`/invoices/${invoice.id}`}
+                                    href={invoices.show.url({ invoice: invoice.id })}
                                     className="text-primary underline"
                                 >
                                     {invoice.no_invoice}

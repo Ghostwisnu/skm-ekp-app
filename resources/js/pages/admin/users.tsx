@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import type { Auth } from "@/types";
+import users from '@/routes/users';
 
 type ManagedUser = {
     id: number;
@@ -48,9 +49,9 @@ function UserDialog({
         const options = { preserveScroll: true, onSuccess: onClose };
 
         if (user) {
-            form.put(`/admin/users/${user.id}`, options);
+            form.put(users.update.url({ user: user.id }), options);
         } else {
-            form.post("/admin/users", options);
+            form.post(users.store.url(), options);
         }
     };
 
@@ -236,7 +237,7 @@ export default function Users({
                                             size="sm"
                                             onClick={() =>
                                                 confirmDelete(
-                                                    `/admin/users/${user.id}`,
+                                                    users.destroy.url({ user: user.id }),
                                                     "Hapus user ini?",
                                                 )
                                             }
