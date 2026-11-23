@@ -67,7 +67,7 @@ export default function TripIndex({
                         <Th>Tanggal</Th>
                         <Th>Plat</Th>
                         <Th>Sopir</Th>
-                        <Th>Rute (client asal → tujuan)</Th>
+                        <Th>Rute</Th>
                         <Th>No. Surat Jalan</Th>
                         <Th right>Total Qty</Th>
                         <Th>Status</Th>
