@@ -1,4 +1,4 @@
-import { Link, router } from '@inertiajs/react';
+import { Link, router, usePage } from '@inertiajs/react';
 import { useForm } from '@inertiajs/react';
 import { useState } from 'react';
 import dailyCostRoutes from '@/routes/daily-costs';
@@ -420,52 +420,49 @@ export default function DailyCostIndex({
                 </thead>
                 <tbody>
                     {dailyCosts.data.length === 0 && <EmptyRow colSpan={6} />}
-                    {dailyCosts.data.map((cost) => {
-                        const role = getUserRole(cost);
-                        return (
-                            <tr key={cost.id}>
-                                <Td>{formatDate(cost.tanggal)}</Td>
-                                <Td>{cost.no_plat}</Td>
-                                <Td>{cost.no_surat_jalan}</Td>
-                                <Td right>{formatRupiah(cost.uang_jalan)}</Td>
-                                <Td>
-                                    {cost.extras && cost.extras.length > 0 ? (
-                                        <ul className="list-disc list-inside text-xs">
-                                            {cost.extras.map((extra, idx) => (
-                                                <li key={idx}>
-                                                    {extra.nama_biaya}: {formatRupiah(extra.nominal)}
-                                                </li>
-                                            ))}
-                                        </ul>
-                                    ) : (
-                                        <span className="text-gray-400 text-xs">-</span>
-                                    )}
-                                </Td>
-                                <Td>
-                                    <Button
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={() => setDialog({ cost })}
-                                    >
-                                        Ubah
-                                    </Button>
-                                    <Button
-                                        variant="destructive"
-                                        size="sm"
-                                        className="ml-2"
-                                        onClick={() =>
-                                            confirmDelete(
-                                                dailyCostRoutes.destroy.url({ dailyCost: cost.id }),
-                                                "Hapus biaya harian ini?",
-                                            )
-                                        }
-                                    >
-                                        Hapus
-                                    </Button>
-                                </Td>
-                            </tr>
-                        );
-                    })}
+                    {dailyCosts.data.map((cost) => (
+                        <tr key={cost.id}>
+                            <Td>{formatDate(cost.tanggal)}</Td>
+                            <Td>{cost.no_plat}</Td>
+                            <Td>{cost.no_surat_jalan}</Td>
+                            <Td right>{formatRupiah(cost.uang_jalan)}</Td>
+                            <Td>
+                                {cost.extras && cost.extras.length > 0 ? (
+                                    <ul className="list-disc list-inside text-xs">
+                                        {cost.extras.map((extra, idx) => (
+                                            <li key={idx}>
+                                                {extra.nama_biaya}: {formatRupiah(extra.nominal)}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                ) : (
+                                    <span className="text-gray-400 text-xs">-</span>
+                                )}
+                            </Td>
+                            <Td>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => setDialog({ cost })}
+                                >
+                                    Ubah
+                                </Button>
+                                <Button
+                                    variant="destructive"
+                                    size="sm"
+                                    className="ml-2"
+                                    onClick={() =>
+                                        confirmDelete(
+                                            dailyCostRoutes.destroy.url({ dailyCost: cost.id }),
+                                            "Hapus biaya harian ini?",
+                                        )
+                                    }
+                                >
+                                    Hapus
+                                </Button>
+                            </Td>
+                        </tr>
+                    ))}
                 </tbody>
             </DataTable>
             <Pagination paginator={dailyCosts} />
@@ -667,9 +664,3 @@ export default function DailyCostIndex({
 }
 
 DailyCostIndex.layout = { breadcrumbs: [{ title: 'Biaya Harian', href: dailyCostRoutes.index.url() }] };
-
-// Helper function (moved from file to avoid duplication)
-function getUserRole(user): string {
-    // This is a placeholder - the actual implementation is in users.tsx
-    return 'user';
-}
