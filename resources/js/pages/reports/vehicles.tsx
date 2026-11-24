@@ -9,6 +9,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { cleanQuery, formatNumber, formatRupiah } from '@/lib/format';
 import { usePage } from '@inertiajs/react';
+import reports from '@/routes/reports';
 import type { Option, VehicleReportRow } from '@/types/domain';
 
 export default function VehicleReport({
