@@ -14,8 +14,8 @@ use Illuminate\Http\ImportResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Excel;
 use Illuminate\Support\Facades\Session;
-use Maatwebsite\Excel\Excel as ExcelFactory;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -179,7 +179,7 @@ class TripController extends Controller
      */
     public function downloadTemplate(): ImportResponse
     {
-        return (new TripImportTemplate())->download('trip-import-template.xlsx');
+        return Excel::download(new TripImportTemplate(), 'trip-import-template.xlsx');
     }
 
     /**
