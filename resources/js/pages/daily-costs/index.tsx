@@ -60,172 +60,7 @@ function currentDate(): string {
     const now = new Date();
     const month = String(now.getMonth() + 1).padStart(2, '0');
     const day = String(now.getDate()).padStart(2, '0');
-
     return `${now.getFullYear()}-${month}-${day}`;
-}
-
-function CostDialog({
-    cost,
-    vehicles,
-    onClose,
-}: {
-    cost: DailyCost | null;
-    vehicles: Option[];
-    onClose: () => void;
-}) {
-    const form = useForm<CostForm>({
-        tanggal: cost?.tanggal ?? currentDate(),
-        no_plat: cost?.no_plat ?? '',
-        no_surat_jalan: cost?.no_surat_jalan ?? '',
-        uang_jalan: String(cost?.uang_jalan ?? 0),
-        catatan: cost?.catatan ?? '',
-        extras: cost?.extras?.map((e) => ({
-            nama_biaya: e.nama_biaya,
-            nominal: String(e.nominal ?? 0),
-        })) ?? [],
-    });
-    const errors = form.errors as Record<string, string | undefined>;
-
-    const addExtra = () => {
-        form.setData('extras', [...form.data.extras, { nama_biaya: '', nominal: '' }]);
-    };
-
-    const removeExtra = (index: number) => {
-        const newExtras = form.data.extras.filter((_, i) => i !== index);
-        form.setData('extras', newExtras);
-    };
-
-    const updateExtra = (index: number, field: 'nama_biaya' | 'nominal', value: string) => {
-        const newExtras = form.data.extras.map((item, i) =>
-            i === index ? { ...item, [field]: value } : item
-        );
-        form.setData('extras', newExtras);
-    };
-
-    const submit = (event: React.FormEvent) => {
-        event.preventDefault();
-        const options = { preserveScroll: true, onSuccess: onClose };
-
-        if (cost) {
-            form.put(dailyCostRoutes.update.url({ dailyCost: cost.id }), options);
-        } else {
-            form.post(dailyCostRoutes.store.url(), options);
-        }
-    };
-
-    return (
-        <Dialog open={cost !== null} onOpenChange={(open) => !open && onClose()}>
-            <DialogContent>
-                <DialogHeader>
-                    <DialogTitle>{cost ? "Ubah Biaya Harian" : "Tambah Biaya Harian"}</DialogTitle>
-                </DialogHeader>
-                <form onSubmit={submit} className="grid gap-3">
-                    <Field label="Tanggal" error={form.errors.tanggal}>
-                        <Input
-                            type="date"
-                            value={form.data.tanggal}
-                            onChange={(e) => form.setData("tanggal", e.target.value)}
-                        />
-                    </Field>
-                    <Field label="No. Plat" error={form.errors.no_plat}>
-                        <Input
-                            list="daily-cost-plates"
-                            placeholder="Pilih atau ketik plat"
-                            value={form.data.no_plat}
-                            onChange={(e) =>
-                                form.setData('no_plat', e.target.value)
-                            }
-                        />
-                        <datalist id="daily-cost-plates">
-                            {vehicles.map((vehicle) => (
-                                <option key={vehicle.id} value={vehicle.plat} />
-                            ))}
-                        </datalist>
-                    </Field>
-                    <Field label="No. Surat Jalan" error={form.errors.no_surat_jalan}>
-                        <Input
-                            value={form.data.no_surat_jalan}
-                            onChange={(e) =>
-                                form.setData('no_surat_jalan', e.target.value)
-                            }
-                        />
-                    </Field>
-                    <Field label="Uang Jalan (Rp)" error={form.errors.uang_jalan}>
-                        <Input
-                            type="number"
-                            min="0"
-                            step="1"
-                            value={form.data.uang_jalan}
-                            onChange={(e) =>
-                                form.setData('uang_jalan', e.target.value)
-                            }
-                        />
-                    </Field>
-                    <Field label="Keterangan" error={form.errors.catatan}>
-                        <Input
-                            value={form.data.catatan}
-                            onChange={(e) =>
-                                form.setData('catatan', e.target.value)
-                            }
-                        />
-                    </Field>
-
-                    {/* Biaya Lainnya */}
-                    <div className="mt-2">
-                        <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                            Biaya Lainnya (opsional)
-                        </label>
-                        {form.data.extras.map((extra, index) => (
-                            <div key={index} className="flex gap-2 mt-2">
-                                <div className="flex-1">
-                                    <Input
-                                        placeholder="Nama biaya"
-                                        value={extra.nama_biaya}
-                                        onChange={(e) =>
-                                            updateExtra(index, 'nama_biaya', e.target.value)
-                                        }
-                                    />
-                                </div>
-                                <div className="w-32">
-                                    <Input
-                                        type="number"
-                                        min="0"
-                                        placeholder="Nominal"
-                                        value={extra.nominal}
-                                        onChange={(e) =>
-                                            updateExtra(index, 'nominal', e.target.value)
-                                        }
-                                    />
-                                </div>
-                                <Button
-                                    type="button"
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => removeExtra(index)}
-                                    disabled={form.data.extras.length === 1}
-                                >
-                                    ✕
-                                </Button>
-                            </div>
-                        ))}
-                        <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            className="mt-2"
-                            onClick={addExtra}
-                        >
-                            + Tambah Biaya Lain
-                        </Button>
-                    </div>
-
-                    <Button type="submit" disabled={form.processing}>
-                        Simpan
-                    </Button>
-                </form>
-            </DialogContent>
-        </Dialog>
-    );
 }
 
 export default function DailyCostIndex({
@@ -237,13 +72,71 @@ export default function DailyCostIndex({
     filters: Record<string, string>;
     vehicles: Option[];
 }) {
-    const [dialog, setDialog] = useState<{ cost: DailyCost | null } | null>(null);
+    const [dialogOpen, setDialogOpen] = useState(false);
+    const [editingCost, setEditingCost] = useState<DailyCost | null>(null);
     const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
     const [isPreviewDialogOpen, setIsPreviewDialogOpen] = useState(false);
     const [previewData, setPreviewData] = useState<DailyCostPreview | null>(null);
+
+    // Form for add/edit
+    const form = useForm<CostForm>({
+        tanggal: currentDate(),
+        no_plat: '',
+        no_surat_jalan: '',
+        uang_jalan: '0',
+        catatan: '',
+        extras: [],
+    });
+
+    // Form for import
     const importForm = useForm<{ file: File | null }>({
         file: null,
     });
+
+    const openAddDialog = () => {
+        setEditingCost(null);
+        form.setData({
+            tanggal: currentDate(),
+            no_plat: '',
+            no_surat_jalan: '',
+            uang_jalan: '0',
+            catatan: '',
+            extras: [],
+        });
+        setDialogOpen(true);
+    };
+
+    const openEditDialog = (cost: DailyCost) => {
+        setEditingCost(cost);
+        form.setData({
+            tanggal: cost.tanggal ?? currentDate(),
+            no_plat: cost.no_plat ?? '',
+            no_surat_jalan: cost.no_surat_jalan ?? '',
+            uang_jalan: String(cost.uang_jalan ?? 0),
+            catatan: cost.catatan ?? '',
+            extras: cost.extras?.map((e) => ({
+                nama_biaya: e.nama_biaya,
+                nominal: String(e.nominal ?? 0),
+            })) ?? [],
+        });
+        setDialogOpen(true);
+    };
+
+    const submitForm = (event: React.FormEvent) => {
+        event.preventDefault();
+        const options = {
+            preserveScroll: true,
+            onSuccess: () => {
+                setDialogOpen(false);
+            },
+        };
+
+        if (editingCost) {
+            form.put(dailyCostRoutes.update.url({ dailyCost: editingCost.id }), options);
+        } else {
+            form.post(dailyCostRoutes.store.url(), options);
+        }
+    };
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0] ?? null;
@@ -271,23 +164,6 @@ export default function DailyCostIndex({
         }
     };
 
-    const handleImportSubmit = (event: React.FormEvent) => {
-        event.preventDefault();
-        if (importForm.data.file) {
-            const formData = new FormData();
-            formData.append('file', importForm.data.file);
-            router.post(dailyCostRoutes.import.url(), formData, {
-                preserveScroll: true,
-                onSuccess: () => {
-                    setIsImportDialogOpen(false);
-                    setIsPreviewDialogOpen(false);
-                    importForm.reset();
-                    setPreviewData(null);
-                },
-            });
-        }
-    };
-
     const handleConfirmImport = () => {
         if (importForm.data.file && previewData) {
             const formData = new FormData();
@@ -304,13 +180,29 @@ export default function DailyCostIndex({
         }
     };
 
+    const addExtra = () => {
+        form.setData('extras', [...form.data.extras, { nama_biaya: '', nominal: '' }]);
+    };
+
+    const removeExtra = (index: number) => {
+        const newExtras = form.data.extras.filter((_, i) => i !== index);
+        form.setData('extras', newExtras);
+    };
+
+    const updateExtra = (index: number, field: 'nama_biaya' | 'nominal', value: string) => {
+        const newExtras = form.data.extras.map((item, i) =>
+            i === index ? { ...item, [field]: value } : item
+        );
+        form.setData('extras', newExtras);
+    };
+
     return (
         <PageShell
             title="Biaya Harian"
             description="Uang jalan per hari per plat"
             actions={
                 <>
-                    <Button onClick={() => setDialog({ cost: null })}>
+                    <Button onClick={openAddDialog}>
                         Tambah Biaya Harian
                     </Button>
                     <a href={dailyCostRoutes.template.url()} download className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2">
@@ -372,7 +264,7 @@ export default function DailyCostIndex({
                                 <Button
                                     variant="outline"
                                     size="sm"
-                                    onClick={() => setDialog({ cost })}
+                                    onClick={() => openEditDialog(cost)}
                                 >
                                     Ubah
                                 </Button>
@@ -396,13 +288,112 @@ export default function DailyCostIndex({
             </DataTable>
             <Pagination paginator={dailyCosts} />
 
+            {/* Add/Edit Dialog */}
+            <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>{editingCost ? "Ubah Biaya Harian" : "Tambah Biaya Harian"}</DialogTitle>
+                    </DialogHeader>
+                    <form onSubmit={submitForm} className="grid gap-3">
+                        <Field label="Tanggal" error={form.errors.tanggal}>
+                            <Input
+                                type="date"
+                                value={form.data.tanggal}
+                                onChange={(e) => form.setData("tanggal", e.target.value)}
+                            />
+                        </Field>
+                        <Field label="No. Plat" error={form.errors.no_plat}>
+                            <Input
+                                list="daily-cost-plates"
+                                placeholder="Pilih atau ketik plat"
+                                value={form.data.no_plat}
+                                onChange={(e) => form.setData('no_plat', e.target.value)}
+                            />
+                            <datalist id="daily-cost-plates">
+                                {vehicles.map((vehicle) => (
+                                    <option key={vehicle.id} value={vehicle.plat} />
+                                ))}
+                            </datalist>
+                        </Field>
+                        <Field label="No. Surat Jalan" error={form.errors.no_surat_jalan}>
+                            <Input
+                                value={form.data.no_surat_jalan}
+                                onChange={(e) => form.setData('no_surat_jalan', e.target.value)}
+                            />
+                        </Field>
+                        <Field label="Uang Jalan (Rp)" error={form.errors.uang_jalan}>
+                            <Input
+                                type="number"
+                                min="0"
+                                step="1"
+                                value={form.data.uang_jalan}
+                                onChange={(e) => form.setData('uang_jalan', e.target.value)}
+                            />
+                        </Field>
+                        <Field label="Keterangan" error={form.errors.catatan}>
+                            <Input
+                                value={form.data.catatan}
+                                onChange={(e) => form.setData('catatan', e.target.value)}
+                            />
+                        </Field>
+
+                        {/* Extras */}
+                        <div className="mt-2">
+                            <Label>Biaya Lainnya (opsional)</Label>
+                            {form.data.extras.map((extra, index) => (
+                                <div key={index} className="flex gap-2 mt-2">
+                                    <div className="flex-1">
+                                        <Input
+                                            placeholder="Nama biaya"
+                                            value={extra.nama_biaya}
+                                            onChange={(e) => updateExtra(index, 'nama_biaya', e.target.value)}
+                                        />
+                                    </div>
+                                    <div className="w-32">
+                                        <Input
+                                            type="number"
+                                            min="0"
+                                            placeholder="Nominal"
+                                            value={extra.nominal}
+                                            onChange={(e) => updateExtra(index, 'nominal', e.target.value)}
+                                        />
+                                    </div>
+                                    <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => removeExtra(index)}
+                                        disabled={form.data.extras.length === 1}
+                                    >
+                                        ✕
+                                    </Button>
+                                </div>
+                            ))}
+                            <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                className="mt-2"
+                                onClick={addExtra}
+                            >
+                                + Tambah Biaya Lain
+                            </Button>
+                        </div>
+
+                        <Button type="submit" disabled={form.processing}>
+                            Simpan
+                        </Button>
+                    </form>
+                </DialogContent>
+            </Dialog>
+
             {/* Import Dialog */}
             <Dialog open={isImportDialogOpen} onOpenChange={setIsImportDialogOpen}>
                 <DialogContent className="max-w-md">
                     <DialogHeader>
                         <DialogTitle>Import Biaya Harian</DialogTitle>
                     </DialogHeader>
-                    <form onSubmit={handleImportSubmit} className="space-y-4">
+                    <form onSubmit={(e) => e.preventDefault()} className="space-y-4">
                         <div>
                             <Label>File Excel</Label>
                             <Input
@@ -424,6 +415,22 @@ export default function DailyCostIndex({
                             <Button
                                 type="submit"
                                 disabled={importForm.processing || !previewData}
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    if (importForm.data.file) {
+                                        const formData = new FormData();
+                                        formData.append('file', importForm.data.file);
+                                        router.post(dailyCostRoutes.import.url(), formData, {
+                                            preserveScroll: true,
+                                            onSuccess: () => {
+                                                setIsImportDialogOpen(false);
+                                                setIsPreviewDialogOpen(false);
+                                                importForm.reset();
+                                                setPreviewData(null);
+                                            },
+                                        });
+                                    }
+                                }}
                             >
                                 Import
                             </Button>
@@ -441,7 +448,6 @@ export default function DailyCostIndex({
 
                     {previewData && (
                         <div className="space-y-4">
-                            {/* Summary */}
                             <Card>
                                 <CardHeader>
                                     <CardTitle>Ringkasan</CardTitle>
@@ -464,7 +470,6 @@ export default function DailyCostIndex({
                                 </CardContent>
                             </Card>
 
-                            {/* Errors */}
                             {previewData.errors.length > 0 && (
                                 <Card className="border-destructive">
                                     <CardHeader>
@@ -480,7 +485,6 @@ export default function DailyCostIndex({
                                 </Card>
                             )}
 
-                            {/* Preview Table */}
                             <Card>
                                 <CardHeader>
                                     <CardTitle>Data yang Akan Diimpor ({previewData.rows.length} Baris)</CardTitle>
@@ -514,53 +518,8 @@ export default function DailyCostIndex({
                                             </table>
                                         </div>
                                     )}
-
-                                    {/* Extras Detail */}
-                                    {previewData.rows.some(r => r.extras && r.extras.length > 0) && (
-                                        <div className="mt-4">
-                                            <p className="text-xs font-medium mb-2">Biaya Lainnya (Extras):</p>
-                                            <div className="border rounded p-3">
-                                                {previewData.rows.map((row, i) => {
-                                                    const extras = row.extras || [];
-                                                    if (extras.length === 0) return null;
-                                                    return (
-                                                        <div key={i} className="mb-2">
-                                                            <p className="text-xs text-muted-foreground">
-                                                                {row.plat} - {row.no_surat_jalan}
-                                                            </p>
-                                                            <ul className="list-disc list-inside text-xs ml-4">
-                                                                {extras.map((e, j) => (
-                                                                    <li key={j}>
-                                                                        {e.nama_biaya}: {formatRupiah(e.nominal)}
-                                                                    </li>
-                                                                ))}
-                                                            </ul>
-                                                        </div>
-                                                    );
-                                                })}
-                                            </div>
-                                        </div>
-                                    )}
                                 </CardContent>
                             </Card>
-
-                            {/* Vehicles */}
-                            {previewData.plats.length > 0 && (
-                                <Card>
-                                    <CardHeader>
-                                        <CardTitle>Plat yang Ditemukan</CardTitle>
-                                    </CardHeader>
-                                    <CardContent>
-                                        <div className="flex flex-wrap gap-2">
-                                            {previewData.plats.map((plat, i) => (
-                                                <span key={i} className="text-xs bg-muted px-2 py-1 rounded">
-                                                    {plat}
-                                                </span>
-                                            ))}
-                                        </div>
-                                    </CardContent>
-                                </Card>
-                            )}
 
                             <DialogFooter>
                                 <Button variant="outline" onClick={() => setIsPreviewDialogOpen(false)}>
@@ -581,13 +540,6 @@ export default function DailyCostIndex({
                     )}
                 </DialogContent>
             </Dialog>
-
-            <CostDialog
-                key={dialog?.cost?.id ?? 'new'}
-                cost={dialog?.cost ?? null}
-                vehicles={vehicles}
-                onClose={() => setDialog(null)}
-            />
         </PageShell>
     );
 }
