@@ -228,96 +228,14 @@ function CostDialog({
     );
 }
 
-function PpnForm({ ppnDefault }: { ppnDefault: number }) {
-    const form = useForm({ ppn_default: String(ppnDefault) });
-
-    return (
-        <form
-            onSubmit={(event) => {
-                event.preventDefault();
-                form.put("/admin/settings", { preserveScroll: true });
-            }}
-            className="flex max-w-sm items-end gap-3 rounded-md border bg-card p-3"
-        >
-            <Field label="PPN default (%)" error={form.errors.ppn_default}>
-                <Input
-                    type="number"
-                    min="0"
-                    max="100"
-                    step="0.01"
-                    value={form.data.ppn_default}
-                    onChange={(e) => form.setData("ppn_default", e.target.value)}
-                />
-            </Field>
-            <Button type="submit" disabled={form.processing}>
-                Simpan
-            </Button>
-        </form>
-    );
-}
-
-type CompanyDetails = {
-    company_name: string;
-    company_address: string;
-    company_bank_name: string;
-    company_bank_account: string;
-};
-
-function CompanyDetailsForm({ companyDetails }: { companyDetails: CompanyDetails }) {
-    const form = useForm(companyDetails);
-
-    return (
-        <form
-            onSubmit={(event) => {
-                event.preventDefault();
-                form.put("/admin/settings", { preserveScroll: true });
-            }}
-            className="grid max-w-2xl gap-3 rounded-md border bg-card p-4"
-        >
-            <h2 className="text-sm font-semibold">Identitas Perusahaan Pemilik</h2>
-            <Field label="Nama perusahaan" error={form.errors.company_name}>
-                <Input
-                    value={form.data.company_name}
-                    onChange={(event) => form.setData("company_name", event.target.value)}
-                />
-            </Field>
-            <Field label="Alamat perusahaan" error={form.errors.company_address}>
-                <Input
-                    value={form.data.company_address}
-                    onChange={(event) => form.setData("company_address", event.target.value)}
-                />
-            </Field>
-            <Field label="Nama bank pembayaran" error={form.errors.company_bank_name}>
-                <Input
-                    value={form.data.company_bank_name}
-                    onChange={(event) => form.setData("company_bank_name", event.target.value)}
-                />
-            </Field>
-            <Field label="Nomor rekening" error={form.errors.company_bank_account}>
-                <Input
-                    value={form.data.company_bank_account}
-                    onChange={(event) => form.setData("company_bank_account", event.target.value)}
-                />
-            </Field>
-            <Button type="submit" disabled={form.processing}>
-                Simpan Identitas Perusahaan
-            </Button>
-        </form>
-    );
-}
-
 export default function DailyCostIndex({
     dailyCosts,
     filters,
     vehicles,
-    ppnDefault,
-    companyDetails,
 }: {
     dailyCosts: Paginated<DailyCost>;
     filters: Record<string, string>;
     vehicles: Option[];
-    ppnDefault: number;
-    companyDetails: CompanyDetails;
 }) {
     const [dialog, setDialog] = useState<{ cost: DailyCost | null } | null>(null);
     const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
@@ -404,8 +322,6 @@ export default function DailyCostIndex({
                 </>
             }
         >
-            <PpnForm ppnDefault={ppnDefault} />
-            <CompanyDetailsForm companyDetails={companyDetails} />
             <DataTable>
                 <thead>
                     <tr>
