@@ -10,7 +10,6 @@ use App\Models\ClientGood;
 use App\Models\Trip;
 use App\Models\Vehicle;
 use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Http\ImportResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -177,7 +176,7 @@ class TripController extends Controller
     /**
      * Download Trip import template.
      */
-    public function downloadTemplate(): ImportResponse
+    public function downloadTemplate(): \Symfony\Component\HttpFoundation\BinaryFileResponse
     {
         return Excel::download(new TripImportTemplate(), 'trip-import-template.xlsx');
     }

@@ -7,7 +7,6 @@ use App\Http\Requests\DailyCostRequest;
 use App\Imports\DailyCostImport;
 use App\Models\DailyCost;
 use App\Models\Vehicle;
-use Illuminate\Http\ImportResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -126,7 +125,7 @@ class DailyCostController extends Controller
     /**
      * Download Daily Cost import template.
      */
-    public function downloadTemplate(): ImportResponse
+    public function downloadTemplate(): \Symfony\Component\HttpFoundation\BinaryFileResponse
     {
         return Excel::download(new DailyCostImportTemplate(), 'daily-cost-import-template.xlsx');
     }
