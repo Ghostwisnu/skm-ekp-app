@@ -155,7 +155,7 @@ class DailyCostController extends Controller
             'errors' => $import->errors,
         ]);
 
-        return redirect()->route('daily-costs.import-preview');
+        return redirect()->route('daily-costs.import-confirm');
     }
 
     /**

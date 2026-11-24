@@ -206,7 +206,7 @@ class TripController extends Controller
             'errors' => $import->errors,
         ]);
 
-        return redirect()->route('trips.import-preview');
+        return redirect()->route('trips.import-confirm');
     }
 
     /**
