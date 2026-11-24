@@ -5,6 +5,7 @@ import {
     store as storeClient,
     update as updateClient,
 } from '@/actions/App/Http/Controllers/ClientController';
+import clientRoutes from '@/routes/clients';
 import { confirmDelete } from '@/components/confirm-delete';
 import {
     DataTable,
@@ -349,4 +350,4 @@ export default function ClientIndex({
     );
 }
 
-ClientIndex.layout = { breadcrumbs: [{ title: 'Client', href: '/clients' }] };
+ClientIndex.layout = { breadcrumbs: [{ title: 'Client', href: clientRoutes.index.url() }] };
