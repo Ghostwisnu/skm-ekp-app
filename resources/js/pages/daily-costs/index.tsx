@@ -322,6 +322,20 @@ export default function DailyCostIndex({
                 </>
             }
         >
+            <FilterBar
+                path={dailyCostRoutes.index.url()}
+                initial={filters}
+                fields={[
+                    { name: 'from', label: 'Dari tanggal', type: 'date' },
+                    { name: 'to', label: 'Sampai tanggal', type: 'date' },
+                    {
+                        name: 'vehicle_id',
+                        label: 'Plat',
+                        type: 'select',
+                        options: vehicles,
+                    },
+                ]}
+            />
             <DataTable>
                 <thead>
                     <tr>
