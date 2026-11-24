@@ -177,9 +177,9 @@ class TripController extends Controller
     /**
      * Download Trip import template.
      */
-    public function downloadTemplate(\Illuminate\Http\Request $request): \Illuminate\Http\Response
+    public function downloadTemplate(): ImportResponse
     {
-        return ExcelFactory::download(new TripImportTemplate(), 'trip-import-template.xlsx');
+        return (new TripImportTemplate())->download('trip-import-template.xlsx');
     }
 
     /**

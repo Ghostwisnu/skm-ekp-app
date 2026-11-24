@@ -126,9 +126,9 @@ class DailyCostController extends Controller
     /**
      * Download Daily Cost import template.
      */
-    public function downloadTemplate(\Illuminate\Http\Request $request): \Illuminate\Http\Response
+    public function downloadTemplate(): ImportResponse
     {
-        return ExcelFactory::download(new DailyCostImportTemplate(), 'daily-cost-import-template.xlsx');
+        return (new DailyCostImportTemplate())->download('daily-cost-import-template.xlsx');
     }
 
     /**
