@@ -12,6 +12,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
+use Maatwebsite\Excel\Excel as ExcelFactory;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -125,9 +126,9 @@ class DailyCostController extends Controller
     /**
      * Download Daily Cost import template.
      */
-    public function downloadTemplate(): ImportResponse
+    public function downloadTemplate(\Illuminate\Http\Request $request): \Illuminate\Http\Response
     {
-        return (new DailyCostImportTemplate)->download('daily-cost-import-template.xlsx');
+        return ExcelFactory::download(new DailyCostImportTemplate(), 'daily-cost-import-template.xlsx');
     }
 
     /**
