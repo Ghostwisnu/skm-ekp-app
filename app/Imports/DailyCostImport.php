@@ -27,15 +27,16 @@ class DailyCostImport implements ToCollection, WithHeadingRow
 
         foreach ($rows as $index => $row) {
             // Skip empty rows
-            if (empty(array_filter($row))) {
+            $rowData = $row instanceof Collection ? $row->toArray() : $row;
+            if (empty(array_filter($rowData))) {
                 continue;
             }
 
-            $tanggal = $row['tanggal'] ?? now()->format('Y-m-d');
-            $plat = strtoupper(trim((string) ($row['plat'] ?? '')));
-            $noSuratJalan = strtoupper(trim((string) ($row['no_surat_jalan'] ?? '')));
-            $uangJalan = (int) ($row['uang_jalan'] ?? 0);
-            $catatan = trim((string) ($row['catatan'] ?? ''));
+            $tanggal = $rowData['tanggal'] ?? now()->format('Y-m-d');
+            $plat = strtoupper(trim((string) ($rowData['plat'] ?? '')));
+            $noSuratJalan = strtoupper(trim((string) ($rowData['no_surat_jalan'] ?? '')));
+            $uangJalan = (int) ($rowData['uang_jalan'] ?? 0);
+            $catatan = trim((string) ($rowData['catatan'] ?? ''));
 
             // Extract extras
             $extras = [];
@@ -43,8 +44,8 @@ class DailyCostImport implements ToCollection, WithHeadingRow
             while (true) {
                 $namaKey = "extras__nama_biaya_{$i}";
                 $nominalKey = "extras__nominal_{$i}";
-                $namaBiaya = trim((string) ($row[$namaKey] ?? ''));
-                $nominal = (int) ($row[$nominalKey] ?? 0);
+                $namaBiaya = trim((string) ($rowData[$namaKey] ?? ''));
+                $nominal = (int) ($rowData[$nominalKey] ?? 0);
                 if ($namaBiaya !== '') {
                     $extras[] = ['nama_biaya' => $namaBiaya, 'nominal' => $nominal];
                 }

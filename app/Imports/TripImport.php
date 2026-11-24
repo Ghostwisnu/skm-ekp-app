@@ -30,7 +30,8 @@ class TripImport implements ToCollection, WithHeadingRow
 
         foreach ($rows as $index => $row) {
             // Skip empty rows
-            if (empty(array_filter($row))) {
+            $rowData = $row instanceof Collection ? $row->toArray() : $row;
+            if (empty(array_filter($rowData))) {
                 continue;
             }
 
