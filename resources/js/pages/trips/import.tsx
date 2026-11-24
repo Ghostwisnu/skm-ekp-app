@@ -6,15 +6,6 @@ export default function ImportTrip() {
         file: null as File | null,
     });
 
-    const submit = (e: React.FormEvent) => {
-        e.preventDefault();
-        const file = (e.target as HTMLFormElement).elements.namedItem('file') as HTMLInputElement;
-        if (!file?.files?.[0]) return;
-        const formData = new FormData();
-        formData.append('file', file.files[0]);
-        post(tripRoutes.importPreview.url(), formData);
-    };
-
     return (
         <>
             <Head title="Import Trip" />
@@ -48,7 +39,7 @@ export default function ImportTrip() {
                     </div>
                 </div>
 
-                <form onSubmit={submit} className="space-y-4 rounded-lg border bg-card p-6 shadow-sm">
+                <form method="POST" action={tripRoutes.importPreview.url()} encType="multipart/form-data" className="space-y-4 rounded-lg border bg-card p-6 shadow-sm">
                     <div>
                         <label className="mb-1 block text-sm font-medium">
                             Pilih File Excel (xlsx, xls, csv)
@@ -57,8 +48,8 @@ export default function ImportTrip() {
                             type="file"
                             name="file"
                             accept=".xlsx, .xls, .csv"
-                            className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                             required
+                            className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                         />
                         {errors.file && (
                             <p className="mt-1 text-sm text-red-500">{errors.file}</p>
