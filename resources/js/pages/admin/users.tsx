@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import type { Auth } from "@/types";
-import users from '@/routes/users';
+import userRoutes from '@/routes/users';
 
 type ManagedUser = {
     id: number;
@@ -49,9 +49,9 @@ function UserDialog({
         const options = { preserveScroll: true, onSuccess: onClose };
 
         if (user) {
-            form.put(users.update.url({ user: user.id }), options);
+            form.put(userRoutes.update.url({ user: user.id }), options);
         } else {
-            form.post(users.store.url(), options);
+            form.post(userRoutes.store.url(), options);
         }
     };
 
@@ -237,7 +237,7 @@ export default function Users({
                                             size="sm"
                                             onClick={() =>
                                                 confirmDelete(
-                                                    users.destroy.url({ user: user.id }),
+                                                    userRoutes.destroy.url({ user: user.id }),
                                                     "Hapus user ini?",
                                                 )
                                             }
@@ -264,5 +264,5 @@ export default function Users({
 }
 
 Users.layout = {
-    breadcrumbs: [{ title: "Pengguna & Pengaturan", href: users.index.url() }],
+    breadcrumbs: [{ title: "Pengguna & Pengaturan", href: userRoutes.index.url() }],
 };

@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Toaster } from '@/components/ui/sonner';
-import roles from '@/routes/roles';
+import roleRoutes from '@/routes/roles';
 
 type RoleForm = {
     id?: number;
@@ -51,11 +51,11 @@ export default function RoleManager({ roles, permissions }: { roles: any[]; perm
 
     const submit = () => {
         if (form.data.id) {
-            form.put(roles.update.url({ role: form.data.id }), {
+            form.put(roleRoutes.update.url({ role: form.data.id }), {
                 onSuccess: () => { setOpen(false); form.reset(); },
             });
         } else {
-            form.post(roles.store.url(), {
+            form.post(roleRoutes.store.url(), {
                 onSuccess: () => { setOpen(false); form.reset(); },
             });
         }
@@ -104,7 +104,7 @@ export default function RoleManager({ roles, permissions }: { roles: any[]; perm
                                     <Button variant="ghost" size="sm" onClick={() => openEdit(role)}>Ubah</Button>
                                     {role.name !== 'admin' && (
                                         <ConfirmDelete
-                                            url={roles.destroy.url({ role: role.id })}
+                                            url={roleRoutes.destroy.url({ role: role.id })}
                                             onDeleted={() => window.location.reload()}
                                         >
                                             <Button variant="destructive" size="sm">Hapus</Button>
