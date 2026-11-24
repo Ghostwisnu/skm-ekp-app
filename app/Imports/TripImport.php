@@ -6,9 +6,11 @@ use App\Models\Client;
 use App\Models\ClientGood;
 use App\Models\Trip;
 use App\Models\Vehicle;
+use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
+use PhpOffice\PhpSpreadsheet\Shared\Date as ExcelDate;
 
 /**
  * Import multiple trips from Excel file.
@@ -63,7 +65,7 @@ class TripImport implements ToCollection, WithHeadingRow
             }
 
             $rowData = [
-                'tanggal' => $row['tanggal'] ?? now()->format('Y-m-d'),
+                'tanggal' => $this->transformDate($row['tanggal'] ?? null),
                 'plat' => $plat,
                 'no_surat_jalan' => $noSuratJalan,
                 'category' => $category,
@@ -124,7 +126,7 @@ class TripImport implements ToCollection, WithHeadingRow
             }
 
             $tripData = [
-                'tanggal' => $firstRow['tanggal'] ?? now()->format('Y-m-d'),
+                'tanggal' => $firstRow['tanggal'],
                 'vehicle_id' => $vehicle->id,
                 'client_id' => $client->id,
                 'destination_client_id' => $destinationClientId,
@@ -198,5 +200,22 @@ class TripImport implements ToCollection, WithHeadingRow
         }
 
         return $items;
+    }
+
+    protected function transformDate(mixed $value): string
+    {
+        if (empty($value)) {
+            return now()->format('Y-m-d');
+        }
+
+        if (is_numeric($value)) {
+            return ExcelDate::excelToDateTimeObject($value)->format('Y-m-d');
+        }
+
+        try {
+            return Carbon::parse($value)->format('Y-m-d');
+        } catch (\Exception $e) {
+            return now()->format('Y-m-d');
+        }
     }
 }

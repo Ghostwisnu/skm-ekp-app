@@ -4,9 +4,11 @@ namespace App\Imports;
 
 use App\Models\DailyCost;
 use App\Models\Vehicle;
+use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
+use PhpOffice\PhpSpreadsheet\Shared\Date as ExcelDate;
 
 /**
  * Import daily costs from Excel file.
@@ -32,7 +34,7 @@ class DailyCostImport implements ToCollection, WithHeadingRow
                 continue;
             }
 
-            $tanggal = $rowData['tanggal'] ?? now()->format('Y-m-d');
+            $tanggal = $this->transformDate($rowData['tanggal'] ?? null);
             $plat = strtoupper(trim((string) ($rowData['plat'] ?? '')));
             $noSuratJalan = strtoupper(trim((string) ($rowData['no_surat_jalan'] ?? '')));
             $uangJalan = (int) ($rowData['uang_jalan'] ?? 0);
@@ -66,6 +68,26 @@ class DailyCostImport implements ToCollection, WithHeadingRow
                 'catatan' => $catatan,
                 'extras' => $extras,
             ];
+        }
+    }
+
+    /**
+     * Transform Excel date to Y-m-d format.
+     */
+    protected function transformDate(mixed $value): string
+    {
+        if (empty($value)) {
+            return now()->format('Y-m-d');
+        }
+
+        if (is_numeric($value)) {
+            return ExcelDate::excelToDateTimeObject($value)->format('Y-m-d');
+        }
+
+        try {
+            return Carbon::parse($value)->format('Y-m-d');
+        } catch (\Exception $e) {
+            return now()->format('Y-m-d');
         }
     }
 
