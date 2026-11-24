@@ -114,7 +114,7 @@ function CostDialog({
     };
 
     return (
-        <Dialog open onOpenChange={(open) => !open && onClose()}>
+        <Dialog open={dialog !== null} onOpenChange={(open) => !open && onClose()}>
             <DialogContent>
                 <DialogHeader>
                     <DialogTitle>{cost ? "Ubah Biaya Harian" : "Tambah Biaya Harian"}</DialogTitle>
