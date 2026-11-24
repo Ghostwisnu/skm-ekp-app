@@ -7,15 +7,12 @@ use App\Http\Requests\DailyCostRequest;
 use App\Imports\DailyCostImport;
 use App\Models\DailyCost;
 use App\Models\Vehicle;
-use App\Services\DailyCostImportPreviewer;
-use Illuminate\Http\ImportResponse;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Session;
 use Inertia\Inertia;
 use Inertia\Response;
-use Maatwebsite\Excel\Excel;
-use Maatwebsite\Excel\ExcelReader;
 
 class DailyCostController extends Controller
 {
@@ -127,63 +124,92 @@ class DailyCostController extends Controller
     /**
      * Download Daily Cost import template.
      */
-    public function downloadTemplate(): ImportResponse
+    public function downloadTemplate(): \Illuminate\Http\Response
     {
         return (new DailyCostImportTemplate)->download('daily-cost-import-template.xlsx');
     }
 
     /**
-     * Import daily costs from Excel file.
+     * Show import form page.
      */
-    public function import(Request $request): RedirectResponse
+    public function importForm(): Response
     {
-        $request->validate([
-            'file' => 'required|file|mimes:xlsx,xls,csv',
-        ]);
-
-        $path = $request->file('file')->getRealPath();
-
-        (new DailyCostImport)->import($path, Excel::XLSX);
-
-        Inertia::flash('toast', ['type' => 'success', 'message' => 'Import biaya harian berhasil.']);
-
-        return back();
+        return Inertia::render('daily-costs/import');
     }
 
     /**
-     * Preview daily costs from Excel file.
+     * Preview daily costs from Excel file (store in session).
      */
-    public function preview(Request $request): JsonResponse
+    public function importPreview(Request $request): RedirectResponse
     {
         $request->validate([
-            'file' => 'required|file|mimes:xlsx,xls,csv',
+            'file' => 'required|file|mimes:xlsx,xls,csv|max:10240',
         ]);
 
-        $path = $request->file('file')->getRealPath();
+        $import = new DailyCostImport();
+        \Maatwebsite\Excel\Facades\Excel::import($import, $request->file('file'));
 
-        // Use Maatwebsite Excel to read the file
-        $reader = ExcelReader::create($path, Excel::XLSX);
-        $reader->withHeadingRow();
-        $reader->sheet('Daily Cost Import');
+        Session::put('daily_costs_import_preview', [
+            'previewData' => $import->previewData,
+            'errors' => $import->errors,
+        ]);
 
-        $rows = [];
-        while ($reader->valid()) {
-            $rows[] = $reader->current();
-            $reader->next();
+        return redirect()->route('daily-costs.import-preview');
+    }
+
+    /**
+     * Show import confirmation page.
+     */
+    public function importConfirm(): Response
+    {
+        $data = Session::get('daily_costs_import_preview', ['previewData' => [], 'errors' => []]);
+
+        if (empty($data['previewData'])) {
+            return redirect()->route('daily-costs.import')->with('error', 'Tidak ada data untuk dipreview.');
         }
-        $reader->close();
 
-        $previewer = new DailyCostImportPreviewer;
-        $preview = $previewer->parse($rows);
-
-        $totalUangJalan = $previewer->totalUangJalan($preview['rows']);
-
-        return response()->json([
-            'rows' => $preview['rows'],
-            'total' => $preview['total'],
-            'totalUangJalan' => $totalUangJalan,
-            'errors' => $preview['errors'],
-            'plats' => $previewer->getUniquePlats($preview['rows']),
+        return Inertia::render('daily-costs/import-preview', [
+            'previewData' => $data['previewData'],
+            'errors' => $data['errors'],
         ]);
+    }
+
+    /**
+     * Store imported daily costs.
+     */
+    public function importStore(Request $request): RedirectResponse
+    {
+        $data = Session::pull('daily_costs_import_preview', null);
+
+        if ($data === null || empty($data['previewData'])) {
+            return redirect()->route('daily-costs.import')->with('error', 'Sesi data preview habis.');
+        }
+
+        DB::transaction(function () use ($data): void {
+            foreach ($data['previewData'] as $row) {
+                $plat = strtoupper(trim((string) $row['plat']));
+                if ($plat === '') {
+                    continue;
+                }
+
+                $vehicle = Vehicle::query()->firstOrCreate(['plat' => $plat]);
+
+                $dailyCost = DailyCost::query()->create([
+                    'tanggal' => $row['tanggal'] ?? now()->format('Y-m-d'),
+                    'no_plat' => $plat,
+                    'no_surat_jalan' => strtoupper(trim((string) $row['no_surat_jalan'])),
+                    'uang_jalan' => (int) ($row['uang_jalan'] ?? 0),
+                    'catatan' => trim((string) $row['catatan']),
+                ]);
+
+                if (! empty($row['extras'])) {
+                    $dailyCost->extras()->createMany($row['extras']);
+                }
+            }
+        });
+
+        Inertia::flash('toast', ['type' => 'success', 'message' => 'Import biaya harian berhasil.']);
+
+        return to_route('daily-costs.index');
     }
 }

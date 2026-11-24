@@ -9,18 +9,13 @@ use App\Models\Client;
 use App\Models\ClientGood;
 use App\Models\Trip;
 use App\Models\Vehicle;
-use App\Services\TripImportPreviewer;
 use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Http\ImportResponse;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\Session;
 use Inertia\Inertia;
 use Inertia\Response;
-use Maatwebsite\Excel\Excel;
-use Maatwebsite\Excel\ExcelReader;
 
 class TripController extends Controller
 {
@@ -180,68 +175,195 @@ class TripController extends Controller
     /**
      * Download Trip import template.
      */
-    public function downloadTemplate(): ImportResponse
+    public function downloadTemplate(): \Illuminate\Http\Response
     {
         return (new TripImportTemplate)->download('trip-import-template.xlsx');
     }
 
     /**
-     * Import trips from Excel file.
+     * Show import form page.
      */
-    public function import(Request $request): RedirectResponse
+    public function importForm(): Response
+    {
+        return Inertia::render('trips/import');
+    }
+
+    /**
+     * Preview trips from Excel file (store in session).
+     */
+    public function importPreview(Request $request): RedirectResponse
     {
         $request->validate([
-            'file' => 'required|file|mimes:xlsx,xls,csv',
+            'file' => 'required|file|mimes:xlsx,xls,csv|max:10240',
         ]);
 
-        $path = $request->file('file')->getRealPath();
+        $import = new TripImport();
+        \Maatwebsite\Excel\Facades\Excel::import($import, $request->file('file'));
 
-        (new TripImport)->import($path, Excel::XLSX);
+        Session::put('trips_import_preview', [
+            'previewData' => $import->previewData,
+            'errors' => $import->errors,
+        ]);
+
+        return redirect()->route('trips.import-preview');
+    }
+
+    /**
+     * Show import confirmation page.
+     */
+    public function importConfirm(): Response
+    {
+        $data = Session::get('trips_import_preview', ['previewData' => [], 'errors' => []]);
+
+        if (empty($data['previewData'])) {
+            return redirect()->route('trips.import')->with('error', 'Tidak ada data untuk dipreview.');
+        }
+
+        // Group by no_surat_jalan
+        $grouped = collect($data['previewData'])
+            ->groupBy('no_surat_jalan')
+            ->map(function ($rows, $noSuratJalan) {
+                $firstRow = $rows->first();
+                return [
+                    'no_surat_jalan' => $noSuratJalan,
+                    'tanggal' => $firstRow['tanggal'],
+                    'plat' => $firstRow['plat'],
+                    'client_name' => $firstRow['client_name'],
+                    'destination_client' => $firstRow['destination_client'] ?? null,
+                    'category' => $firstRow['category'],
+                    'tujuan' => $firstRow['tujuan'] ?? null,
+                    'items' => $rows->map(fn ($row) => [
+                        'jenis_barang' => $row['jenis_barang'],
+                        'qty_barang' => $row['qty_barang'],
+                        'total_harga' => $row['total_harga'],
+                    ])->values()->toArray(),
+                ];
+            })
+            ->values()
+            ->toArray();
+
+        return Inertia::render('trips/import-preview', [
+            'previewData' => $data['previewData'],
+            'grouped' => $grouped,
+            'errors' => $data['errors'],
+        ]);
+    }
+
+    /**
+     * Store imported trips.
+     */
+    public function importStore(Request $request): RedirectResponse
+    {
+        $data = Session::pull('trips_import_preview', null);
+
+        if ($data === null || empty($data['previewData'])) {
+            return redirect()->route('trips.import')->with('error', 'Sesi data preview habis.');
+        }
+
+        DB::transaction(function () use ($data): void {
+            $grouped = collect($data['previewData'])->groupBy('no_surat_jalan');
+
+            foreach ($grouped as $noSuratJalan => $rows) {
+                $firstRow = $rows->first();
+
+                $category = strtolower(trim((string) ($firstRow['category'] ?? 'kontrak')));
+                $category = in_array($category, ['kontrak', 'outsourcing']) ? $category : 'kontrak';
+
+                $clientName = trim((string) ($firstRow['client_name'] ?? ''));
+                if ($clientName === '') {
+                    continue;
+                }
+                $client = Client::query()->firstOrCreate(['nama' => $clientName]);
+
+                $plat = trim((string) ($firstRow['plat'] ?? ''));
+                if ($plat === '') {
+                    continue;
+                }
+                $vehicle = Vehicle::query()->firstOrCreate(['plat' => $plat]);
+
+                $destinationClientId = null;
+                if ($category === 'kontrak') {
+                    $destinationClientName = trim((string) ($firstRow['destination_client'] ?? ''));
+                    if ($destinationClientName !== '') {
+                        $destinationClient = Client::query()
+                            ->where('nama', $destinationClientName)
+                            ->where('id', '!=', $client->id)
+                            ->firstOrCreate(['nama' => $destinationClientName]);
+                        if ($destinationClient) {
+                            $destinationClientId = $destinationClient->id;
+                        }
+                    }
+                }
+
+                $tripData = [
+                    'tanggal' => $firstRow['tanggal'] ?? now()->format('Y-m-d'),
+                    'vehicle_id' => $vehicle->id,
+                    'client_id' => $client->id,
+                    'destination_client_id' => $destinationClientId,
+                    'sopir' => $vehicle->nama_supir ?? '',
+                    'no_surat_jalan' => $noSuratJalan,
+                    'category' => $category,
+                    'tujuan' => $category === 'outsourcing' ? ($firstRow['tujuan'] ?? null) : null,
+                    'invoice_id' => null,
+                ];
+
+                $trip = Trip::query()->create($tripData);
+
+                $items = [];
+                $goodsClientId = $category === 'kontrak' ? $destinationClientId : $client->id;
+                $sourceClient = $client;
+
+                foreach ($rows as $row) {
+                    $jenisBarang = trim((string) ($row['jenis_barang'] ?? ''));
+                    if ($jenisBarang === '') {
+                        continue;
+                    }
+
+                    $qty = (float) ($row['qty_barang'] ?? 0);
+                    $totalHarga = (int) ($row['total_harga'] ?? 0);
+
+                    $good = ClientGood::query()
+                        ->where('client_id', $goodsClientId)
+                        ->where('jenis_barang', $jenisBarang)
+                        ->first();
+
+                    if (! $good) {
+                        $good = ClientGood::query()->create([
+                            'client_id' => $goodsClientId,
+                            'jenis_barang' => $jenisBarang,
+                            'pricing_mode' => 'per_qty',
+                            'harga' => 0,
+                        ]);
+                    }
+
+                    $route = match ($category) {
+                        'outsourcing' => $sourceClient->nama.' → '.($row['tujuan'] ?? '-'),
+                        default => $destinationClientId
+                            ? $sourceClient->nama.' → '.Client::query()->find($destinationClientId)->nama
+                            : $sourceClient->nama,
+                    };
+
+                    $items[] = [
+                        'client_good_id' => $good->id,
+                        'jenis_barang' => $good->jenis_barang,
+                        'rute' => $route,
+                        'pricing_mode' => $good->pricing_mode,
+                        'qty_barang' => $qty,
+                        'tonase_kg' => $qty,
+                        'harga_satuan' => $good->harga,
+                        'total_harga' => $totalHarga,
+                    ];
+                }
+
+                if (! empty($items)) {
+                    $trip->items()->createMany($items);
+                }
+            }
+        });
 
         Inertia::flash('toast', ['type' => 'success', 'message' => 'Import trip berhasil.']);
 
         return to_route('trips.index');
-    }
-
-    /**
-     * Preview trips from Excel file.
-     */
-    public function preview(Request $request): JsonResponse
-    {
-        $request->validate([
-            'file' => 'required|file|mimes:xlsx,xls,csv',
-        ]);
-
-        $path = $request->file('file')->getRealPath();
-
-        // Use Maatwebsite Excel to read the file
-        $reader = ExcelReader::create($path, Excel::XLSX);
-        $reader->withHeadingRow();
-        $reader->sheet('Trip Import');
-
-        $rows = [];
-        while ($reader->valid()) {
-            $rows[] = $reader->current();
-            $reader->next();
-        }
-        $reader->close();
-
-        $previewer = new TripImportPreviewer;
-        $preview = $previewer->parse($rows);
-
-        $statistics = $previewer->statistics($preview);
-
-        return response()->json([
-            'rows' => $preview['rows'],
-            'groups' => $preview['groups'],
-            'totalTrips' => $preview['totalTrips'],
-            'totalItems' => $preview['totalItems'],
-            'totalQty' => $statistics['total_qty'],
-            'totalHarga' => $statistics['total_harga'],
-            'errors' => $preview['errors'],
-            'clients' => $previewer->getUniqueClients($preview['rows']),
-            'destinations' => $previewer->getUniqueDestinations($preview['rows']),
-        ]);
     }
 
     private function lockedResponse(): RedirectResponse

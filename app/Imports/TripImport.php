@@ -6,118 +6,122 @@ use App\Models\Client;
 use App\Models\ClientGood;
 use App\Models\Trip;
 use App\Models\Vehicle;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
-use Maatwebsite\Excel\Concerns\Importable;
-use Maatwebsite\Excel\Concerns\ToModel;
+use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
-use Maatwebsite\Excel\Concerns\WithMultipleSheets;
-use Maatwebsite\Excel\Events\EndBatch;
-use Maatwebsite\Excel\Events\StartBatch;
 
 /**
  * Import multiple trips from Excel file.
  * Each row represents ONE trip item (trip + item combined).
  * Rows with the same no_surat_jalan are grouped as one trip.
  */
-class TripImport implements ToModel, WithHeadingRow, WithMultipleSheets
+class TripImport implements ToCollection, WithHeadingRow
 {
-    use Importable;
+    /** @var array<int, array> */
+    public array $previewData = [];
 
-    /** @var Collection<int, array> */
-    protected Collection $groupedRows;
+    /** @var list<string> */
+    public array $errors = [];
+
+    public function collection(Collection $rows): void
+    {
+        $this->previewData = [];
+        $groupedRows = [];
+
+        foreach ($rows as $index => $row) {
+            // Skip empty rows
+            if (empty(array_filter($row))) {
+                continue;
+            }
+
+            $noSuratJalan = (string) ($row['no_surat_jalan'] ?? '');
+            if ($noSuratJalan === '') {
+                $this->errors[] = "Baris ".($index+1).": no_surat_jalan wajib diisi";
+                continue;
+            }
+
+            $plat = trim((string) ($row['plat'] ?? ''));
+            if ($plat === '') {
+                $this->errors[] = "Baris ".($index+1).": plat/kendaraan wajib diisi";
+                continue;
+            }
+
+            $clientName = trim((string) ($row['client_name'] ?? ''));
+            if ($clientName === '') {
+                $this->errors[] = "Baris ".($index+1).": nama client wajib diisi";
+                continue;
+            }
+
+            $category = strtolower(trim((string) ($row['category'] ?? 'kontrak')));
+            $category = in_array($category, ['kontrak', 'outsourcing']) ? $category : 'kontrak';
+
+            $jenisBarang = trim((string) ($row['jenis_barang'] ?? ''));
+            if ($jenisBarang === '') {
+                $this->errors[] = "Baris ".($index+1).": jenis barang wajib diisi";
+                continue;
+            }
+
+            $rowData = [
+                'tanggal' => $row['tanggal'] ?? now()->format('Y-m-d'),
+                'plat' => $plat,
+                'no_surat_jalan' => $noSuratJalan,
+                'category' => $category,
+                'client_name' => $clientName,
+                'destination_client' => trim((string) ($row['destination_client'] ?? '')),
+                'tujuan' => trim((string) ($row['tujuan'] ?? '')),
+                'jenis_barang' => $jenisBarang,
+                'qty_barang' => (float) ($row['qty_barang'] ?? 0),
+                'total_harga' => (int) ($row['total_harga'] ?? 0),
+            ];
+
+            $this->previewData[] = $rowData;
+            $groupedRows[$noSuratJalan][] = $rowData;
+        }
+    }
 
     /**
-     * @return Model|null
+     * Store all valid trips from preview data.
      */
-    public function model(array $row): ?object
+    public function store(): void
     {
-        // Skip empty rows
-        if (empty(array_filter($row))) {
-            return null;
-        }
-
-        // Initialize collection if not set
-        if (! isset($this->groupedRows)) {
-            $this->groupedRows = new Collection;
-        }
-
-        // Group rows by no_surat_jalan
-        $noSuratJalan = (string) ($row['no_surat_jalan'] ?? '');
-        if ($noSuratJalan === '') {
-            return null;
-        }
-
-        $this->groupedRows->put($noSuratJalan, $row);
-
-        // We'll process grouped rows in afterBatch
-        return null;
-    }
-
-    /**
-     * @return array<int, string>
-     */
-    public function sheets(): array
-    {
-        return ['Trip Import'];
-    }
-
-    public static function startBatch(StartBatch $event): void
-    {
-        // Reset state
-    }
-
-    public function batchEnd(EndBatch $endBatch): void
-    {
-        // Process grouped rows into trips
-        $this->processTrips();
-    }
-
-    /**
-     * Process all grouped rows into trip records.
-     */
-    protected function processTrips(): void
-    {
-        if (! isset($this->groupedRows) || $this->groupedRows->isEmpty()) {
+        if (empty($this->previewData)) {
             return;
         }
 
-        $grouped = $this->groupedRows->groupBy('no_surat_jalan');
+        $grouped = collect($this->previewData)->groupBy('no_surat_jalan');
 
         foreach ($grouped as $noSuratJalan => $rows) {
             $firstRow = $rows->first();
 
-            // Determine category and destination
             $category = strtolower(trim((string) ($firstRow['category'] ?? 'kontrak')));
             $category = in_array($category, ['kontrak', 'outsourcing']) ? $category : 'kontrak';
 
-            // Resolve client
             $clientName = trim((string) ($firstRow['client_name'] ?? ''));
             if ($clientName === '') {
                 continue;
             }
-            $client = $this->resolveClient($clientName);
+            $client = Client::query()->firstOrCreate(['nama' => $clientName]);
 
-            // Resolve vehicle
             $plat = trim((string) ($firstRow['plat'] ?? ''));
             if ($plat === '') {
                 continue;
             }
             $vehicle = Vehicle::query()->firstOrCreate(['plat' => $plat]);
 
-            // For kontrak, get destination client
             $destinationClientId = null;
             if ($category === 'kontrak') {
                 $destinationClientName = trim((string) ($firstRow['destination_client'] ?? ''));
                 if ($destinationClientName !== '') {
-                    $destinationClient = $this->resolveDestinationClient($destinationClientName, $client->id);
+                    $destinationClient = Client::query()
+                        ->where('nama', $destinationClientName)
+                        ->where('id', '!=', $client->id)
+                        ->firstOrCreate(['nama' => $destinationClientName]);
                     if ($destinationClient) {
                         $destinationClientId = $destinationClient->id;
                     }
                 }
             }
 
-            // Build trip data
             $tripData = [
                 'tanggal' => $firstRow['tanggal'] ?? now()->format('Y-m-d'),
                 'vehicle_id' => $vehicle->id,
@@ -130,47 +134,15 @@ class TripImport implements ToModel, WithHeadingRow, WithMultipleSheets
                 'invoice_id' => null,
             ];
 
-            // Create trip
             $trip = Trip::query()->create($tripData);
 
-            // Process items
             $items = $this->resolveItems($trip, $rows, $category, $destinationClientId);
-
             if (! empty($items)) {
                 $trip->items()->createMany($items);
             }
         }
     }
 
-    /**
-     * Resolve client from name or ID.
-     */
-    protected function resolveClient(string $clientName): Client
-    {
-        return Client::query()->firstOrCreate(['nama' => $clientName]);
-    }
-
-    /**
-     * Resolve destination client for kontrak trips.
-     */
-    protected function resolveDestinationClient(string $clientName, int $sourceClientId): ?Client
-    {
-        if ($clientName === '') {
-            return null;
-        }
-
-        return Client::query()
-            ->where('nama', $clientName)
-            ->where('id', '!=', $sourceClientId)
-            ->firstOrCreate(['nama' => $clientName]);
-    }
-
-    /**
-     * Resolve items from grouped rows.
-     *
-     * @param  Collection<int, array>  $rows
-     * @return array<int, array>
-     */
     protected function resolveItems(Trip $trip, Collection $rows, string $category, ?int $destinationClientId): array
     {
         $clientId = $trip->client_id;
@@ -182,7 +154,6 @@ class TripImport implements ToModel, WithHeadingRow, WithMultipleSheets
         }
 
         $items = [];
-
         foreach ($rows as $row) {
             $jenisBarang = trim((string) ($row['jenis_barang'] ?? ''));
             if ($jenisBarang === '') {
@@ -192,7 +163,6 @@ class TripImport implements ToModel, WithHeadingRow, WithMultipleSheets
             $qty = (float) ($row['qty_barang'] ?? 0);
             $totalHarga = (int) ($row['total_harga'] ?? 0);
 
-            // Find or create the client good
             $good = ClientGood::query()
                 ->where('client_id', $goodsClientId)
                 ->where('jenis_barang', $jenisBarang)

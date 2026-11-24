@@ -26,14 +26,22 @@ Route::middleware('auth')->group(function () {
     Route::middleware('role:admin,operator')->group(function () {
         Route::resource('trips', TripController::class)->except('show');
         Route::get('trips/template', [TripController::class, 'downloadTemplate'])->name('trips.template');
-        Route::post('trips/import', [TripController::class, 'import'])->name('trips.import');
-        Route::post('trips/preview', [TripController::class, 'preview'])->name('trips.preview');
+
+        // Import flow routes (following ai_erp_lvl-app pattern)
+        Route::get('trips/import', [TripController::class, 'importForm'])->name('trips.import');
+        Route::post('trips/import/preview', [TripController::class, 'importPreview'])->name('trips.import-preview');
+        Route::get('trips/import/confirm', [TripController::class, 'importConfirm'])->name('trips.import-confirm');
+        Route::post('trips/import/store', [TripController::class, 'importStore'])->name('trips.import-store');
 
         Route::resource('daily-costs', DailyCostController::class)->only(['index', 'store', 'update', 'destroy'])
             ->parameters(['daily-costs' => 'dailyCost']);
         Route::get('daily-costs/template', [DailyCostController::class, 'downloadTemplate'])->name('daily-costs.template');
-        Route::post('daily-costs/import', [DailyCostController::class, 'import'])->name('daily-costs.import');
-        Route::post('daily-costs/preview', [DailyCostController::class, 'preview'])->name('daily-costs.preview');
+
+        // Import flow routes (following ai_erp_lvl-app pattern)
+        Route::get('daily-costs/import', [DailyCostController::class, 'importForm'])->name('daily-costs.import');
+        Route::post('daily-costs/import/preview', [DailyCostController::class, 'importPreview'])->name('daily-costs.import-preview');
+        Route::get('daily-costs/import/confirm', [DailyCostController::class, 'importConfirm'])->name('daily-costs.import-confirm');
+        Route::post('daily-costs/import/store', [DailyCostController::class, 'importStore'])->name('daily-costs.import-store');
 
         Route::resource('clients', ClientController::class)->only(['store', 'update', 'destroy']);
         Route::resource('vehicles', VehicleController::class)->only(['store', 'update', 'destroy']);
