@@ -1,4 +1,4 @@
-import { Link, router, usePage } from '@inertiajs/react';
+import { Link, router } from '@inertiajs/react';
 import { useForm } from '@inertiajs/react';
 import { useState } from 'react';
 import dailyCostRoutes from '@/routes/daily-costs';
@@ -319,7 +319,6 @@ export default function DailyCostIndex({
     ppnDefault: number;
     companyDetails: CompanyDetails;
 }) {
-    const { auth } = usePage<{ auth: { user: { id: number } } }>().props;
     const [dialog, setDialog] = useState<{ cost: DailyCost | null } | null>(null);
     const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
     const [isPreviewDialogOpen, setIsPreviewDialogOpen] = useState(false);
