@@ -2,13 +2,7 @@
 
 namespace App\Services;
 
-use App\Models\Client;
-use App\Models\ClientGood;
-use App\Models\DailyCost;
-use App\Models\Vehicle;
-use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Excel;
-use Maatwebsite\Excel\Readers\ExcelReader;
 
 /**
  * Service for parsing Daily Cost Excel imports and generating previews.
@@ -18,7 +12,7 @@ class DailyCostImportPreviewer
     /**
      * Parse Excel file and return preview data.
      *
-     * @param array $previewRows Parsed rows from Excel
+     * @param  array  $previewRows  Parsed rows from Excel
      * @return array{rows: array<int, array>, total: int, errors: array<int, string>}
      */
     public function parse(array $previewRows): array

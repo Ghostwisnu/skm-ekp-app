@@ -2,10 +2,7 @@
 
 namespace App\Services;
 
-use App\Models\Client;
-use App\Models\ClientGood;
 use App\Models\Trip;
-use App\Models\Vehicle;
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Excel;
 
@@ -17,7 +14,7 @@ class TripImportPreviewer
     /**
      * Parse Excel file and return preview data.
      *
-     * @param array $previewRows Parsed rows from Excel
+     * @param  array  $previewRows  Parsed rows from Excel
      * @return array{rows: array<int, array>, groups: array<int, array>, totalTrips: int, totalItems: int, errors: array<int, string>}
      */
     public function parse(array $previewRows): array
@@ -34,19 +31,22 @@ class TripImportPreviewer
 
             $noSuratJalan = (string) ($row['no_surat_jalan'] ?? '');
             if ($noSuratJalan === '') {
-                $errors[] = "Baris " . ($index + 1) . ": no_surat_jalan wajib diisi";
+                $errors[] = 'Baris '.($index + 1).': no_surat_jalan wajib diisi';
+
                 continue;
             }
 
             $tanggal = $row['tanggal'] ?? now()->format('Y-m-d');
             $plat = trim((string) ($row['plat'] ?? ''));
             if ($plat === '') {
-                $errors[] = "Baris " . ($index + 1) . ": plat/kendaraan wajib diisi";
+                $errors[] = 'Baris '.($index + 1).': plat/kendaraan wajib diisi';
+
                 continue;
             }
             $clientName = trim((string) ($row['client_name'] ?? ''));
             if ($clientName === '') {
-                $errors[] = "Baris " . ($index + 1) . ": nama client wajib diisi";
+                $errors[] = 'Baris '.($index + 1).': nama client wajib diisi';
+
                 continue;
             }
 
@@ -55,7 +55,8 @@ class TripImportPreviewer
 
             $jenisBarang = trim((string) ($row['jenis_barang'] ?? ''));
             if ($jenisBarang === '') {
-                $errors[] = "Baris " . ($index + 1) . ": jenis barang wajib diisi";
+                $errors[] = 'Baris '.($index + 1).': jenis barang wajib diisi';
+
                 continue;
             }
 
@@ -93,7 +94,7 @@ class TripImportPreviewer
     /**
      * Process grouped rows into trip-level preview.
      *
-     * @param Collection<int, array> $groupedRows
+     * @param  Collection<int, array>  $groupedRows
      * @return array<int, array{no_surat_jalan: string, tanggal: string, plat: string, client_name: string, destination_client: string, category: string, tujuan: string, items: array<int, array{jenis_barang: string, qty_barang: int|float, total_harga: int}>}>
      */
     protected function processGroups(Collection $groupedRows): array

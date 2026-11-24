@@ -12,6 +12,7 @@ use App\Models\Vehicle;
 use App\Services\TripImportPreviewer;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\ImportResponse;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -19,6 +20,7 @@ use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 use Maatwebsite\Excel\Excel;
+use Maatwebsite\Excel\ExcelReader;
 
 class TripController extends Controller
 {
@@ -204,7 +206,7 @@ class TripController extends Controller
     /**
      * Preview trips from Excel file.
      */
-    public function preview(Request $request): \Illuminate\Http\JsonResponse
+    public function preview(Request $request): JsonResponse
     {
         $request->validate([
             'file' => 'required|file|mimes:xlsx,xls,csv',
@@ -213,7 +215,7 @@ class TripController extends Controller
         $path = $request->file('file')->getRealPath();
 
         // Use Maatwebsite Excel to read the file
-        $reader = \Maatwebsite\Excel\ExcelReader::create($path, Excel::XLSX);
+        $reader = ExcelReader::create($path, Excel::XLSX);
         $reader->withHeadingRow();
         $reader->sheet('Trip Import');
 
@@ -224,7 +226,7 @@ class TripController extends Controller
         }
         $reader->close();
 
-        $previewer = new TripImportPreviewer();
+        $previewer = new TripImportPreviewer;
         $preview = $previewer->parse($rows);
 
         $statistics = $previewer->statistics($preview);

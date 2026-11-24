@@ -15,6 +15,7 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 use Maatwebsite\Excel\Excel;
+use Maatwebsite\Excel\ExcelReader;
 
 class DailyCostController extends Controller
 {
@@ -161,7 +162,7 @@ class DailyCostController extends Controller
         $path = $request->file('file')->getRealPath();
 
         // Use Maatwebsite Excel to read the file
-        $reader = \Maatwebsite\Excel\ExcelReader::create($path, Excel::XLSX);
+        $reader = ExcelReader::create($path, Excel::XLSX);
         $reader->withHeadingRow();
         $reader->sheet('Daily Cost Import');
 
@@ -172,7 +173,7 @@ class DailyCostController extends Controller
         }
         $reader->close();
 
-        $previewer = new DailyCostImportPreviewer();
+        $previewer = new DailyCostImportPreviewer;
         $preview = $previewer->parse($rows);
 
         $totalUangJalan = $previewer->totalUangJalan($preview['rows']);

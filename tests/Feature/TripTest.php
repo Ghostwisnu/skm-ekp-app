@@ -225,7 +225,7 @@ test('a trip can be created with string IDs (real form submission)', function ()
             'jenis_barang' => 'Semen',
             'qty_barang' => '5',
         ]],
-   ])->assertRedirect(route('trips.index'));
+    ])->assertRedirect(route('trips.index'));
 
     expect(Trip::query()->count())->toBe(1);
 });
