@@ -3,6 +3,7 @@
 namespace App\Exports;
 
 use Maatwebsite\Excel\Concerns\FromArray;
+use Maatwebsite\Excel\Concerns\Exportable;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 
 /**
@@ -25,6 +26,8 @@ use Maatwebsite\Excel\Concerns\WithHeadings;
  * - extras__nama_biaya_1, extras__nominal_1: First extra cost
  */
 class DailyCostImportTemplate implements FromArray, WithHeadings
+{
+    use Exportable;
 {
     /**
      * @return list<string>

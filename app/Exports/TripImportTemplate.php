@@ -2,7 +2,9 @@
 
 namespace App\Exports;
 
+use Illuminate\Support\Facades\File;
 use Maatwebsite\Excel\Concerns\FromArray;
+use Maatwebsite\Excel\Concerns\Exportable;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 
 /**
@@ -31,6 +33,8 @@ use Maatwebsite\Excel\Concerns\WithHeadings;
  * - total_harga: Total price for this item
  */
 class TripImportTemplate implements FromArray, WithHeadings
+{
+    use Exportable;
 {
     /**
      * @return list<string>
