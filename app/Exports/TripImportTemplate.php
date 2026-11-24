@@ -2,7 +2,6 @@
 
 namespace App\Exports;
 
-use Illuminate\Support\Facades\File;
 use Maatwebsite\Excel\Concerns\FromArray;
 use Maatwebsite\Excel\Concerns\Exportable;
 use Maatwebsite\Excel\Concerns\WithHeadings;
@@ -11,31 +10,11 @@ use Maatwebsite\Excel\Concerns\WithHeadings;
  * Excel template for Trip import.
  * Format: Multiple trips can be imported in a single file.
  * Each trip can have multiple jenis_barang (items).
- *
- * USAGE: Generate template via controller action that calls:
- *   (new TripImportTemplate())->download('trip-import-template.xlsx')
- *
- * IMPORT FLOW:
- * 1. Each row represents ONE trip item (trip + item combined)
- * 2. All rows with same no_surat_jalan belong to same trip
- * 3. Items are grouped and processed accordingly
- *
- * COLUMNS:
- * - tanggal: Trip date (YYYY-MM-DD format)
- * - plat: Vehicle plate number (auto-creates vehicle if not exists)
- * - no_surat_jalan: Delivery note number (groups items into trips)
- * - category: "kontrak" or "outsourcing"
- * - client_name: Source client name (for Outsourcing) or Client asal (for Kontrak)
- * - destination_client: For Kontrak: destination client name
- * - tujuan: For Outsourcing: destination location
- * - jenis_barang: Item type (creates new badan if not exists)
- * - qty_barang: Quantity of goods
- * - total_harga: Total price for this item
  */
 class TripImportTemplate implements FromArray, WithHeadings
 {
     use Exportable;
-{
+
     /**
      * @return list<string>
      */
