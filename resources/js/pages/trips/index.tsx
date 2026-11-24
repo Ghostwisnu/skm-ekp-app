@@ -37,9 +37,9 @@ export default function TripIndex({
                     <Button asChild>
                         <Link href={tripRoutes.create.url()}>Tambah Trip</Link>
                     </Button>
-                    <a href={tripRoutes.template.url()} download className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2">
+                    <Button onClick={() => { window.location.href = tripRoutes.template.url(); }}>
                         Unduh Template
-                    </a>
+                    </Button>
                     <Button asChild variant="outline">
                         <Link href={tripRoutes.import.url()}>
                             Import Trip
