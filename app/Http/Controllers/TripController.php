@@ -9,6 +9,7 @@ use App\Models\Client;
 use App\Models\ClientGood;
 use App\Models\Trip;
 use App\Models\Vehicle;
+use App\Services\TripImportPreviewer;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\ImportResponse;
 use Illuminate\Http\RedirectResponse;
@@ -198,6 +199,47 @@ class TripController extends Controller
         Inertia::flash('toast', ['type' => 'success', 'message' => 'Import trip berhasil.']);
 
         return to_route('trips.index');
+    }
+
+    /**
+     * Preview trips from Excel file.
+     */
+    public function preview(Request $request): \Illuminate\Http\JsonResponse
+    {
+        $request->validate([
+            'file' => 'required|file|mimes:xlsx,xls,csv',
+        ]);
+
+        $path = $request->file('file')->getRealPath();
+
+        // Use Maatwebsite Excel to read the file
+        $reader = \Maatwebsite\Excel\ExcelReader::create($path, Excel::XLSX);
+        $reader->withHeadingRow();
+        $reader->sheet('Trip Import');
+
+        $rows = [];
+        while ($reader->valid()) {
+            $rows[] = $reader->current();
+            $reader->next();
+        }
+        $reader->close();
+
+        $previewer = new TripImportPreviewer();
+        $preview = $previewer->parse($rows);
+
+        $statistics = $previewer->statistics($preview);
+
+        return response()->json([
+            'rows' => $preview['rows'],
+            'groups' => $preview['groups'],
+            'totalTrips' => $preview['totalTrips'],
+            'totalItems' => $preview['totalItems'],
+            'totalQty' => $statistics['total_qty'],
+            'totalHarga' => $statistics['total_harga'],
+            'errors' => $preview['errors'],
+            'clients' => $previewer->getUniqueClients($preview['rows']),
+            'destinations' => $previewer->getUniqueDestinations($preview['rows']),
+        ]);
     }
 
     private function lockedResponse(): RedirectResponse

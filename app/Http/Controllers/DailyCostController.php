@@ -7,7 +7,9 @@ use App\Http\Requests\DailyCostRequest;
 use App\Imports\DailyCostImport;
 use App\Models\DailyCost;
 use App\Models\Vehicle;
+use App\Services\DailyCostImportPreviewer;
 use Illuminate\Http\ImportResponse;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -145,5 +147,42 @@ class DailyCostController extends Controller
         Inertia::flash('toast', ['type' => 'success', 'message' => 'Import biaya harian berhasil.']);
 
         return back();
+    }
+
+    /**
+     * Preview daily costs from Excel file.
+     */
+    public function preview(Request $request): JsonResponse
+    {
+        $request->validate([
+            'file' => 'required|file|mimes:xlsx,xls,csv',
+        ]);
+
+        $path = $request->file('file')->getRealPath();
+
+        // Use Maatwebsite Excel to read the file
+        $reader = \Maatwebsite\Excel\ExcelReader::create($path, Excel::XLSX);
+        $reader->withHeadingRow();
+        $reader->sheet('Daily Cost Import');
+
+        $rows = [];
+        while ($reader->valid()) {
+            $rows[] = $reader->current();
+            $reader->next();
+        }
+        $reader->close();
+
+        $previewer = new DailyCostImportPreviewer();
+        $preview = $previewer->parse($rows);
+
+        $totalUangJalan = $previewer->totalUangJalan($preview['rows']);
+
+        return response()->json([
+            'rows' => $preview['rows'],
+            'total' => $preview['total'],
+            'totalUangJalan' => $totalUangJalan,
+            'errors' => $preview['errors'],
+            'plats' => $previewer->getUniquePlats($preview['rows']),
+        ]);
     }
 }
