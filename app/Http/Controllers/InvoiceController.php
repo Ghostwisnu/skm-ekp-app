@@ -28,11 +28,12 @@ class InvoiceController extends Controller
             'invoices' => Invoice::query()
                 ->with(['client', 'destinationClient'])
                 ->when($request->query('client_id'), fn ($query, $id) => $query->where('client_id', $id))
+                ->when($request->query('status'), fn ($query, $status) => $query->where('status', $status))
                 ->latest('id')
                 ->paginate(15)
                 ->withQueryString(),
             'clients' => Client::query()->orderBy('nama')->get(['id', 'nama']),
-            'filters' => (object) $request->only(['client_id']),
+            'filters' => (object) $request->only(['client_id', 'status']),
         ]);
     }
 

@@ -43,6 +43,15 @@ export default function InvoiceIndex({
                         type: 'select',
                         options: clients,
                     },
+                    {
+                        name: 'status',
+                        label: 'Status',
+                        type: 'select',
+                        options: [
+                            { value: 'draft', label: 'Draft' },
+                            { value: 'final', label: 'Final' },
+                        ],
+                    },
                 ]}
             />
             <DataTable>
