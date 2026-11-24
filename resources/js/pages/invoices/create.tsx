@@ -49,6 +49,7 @@ export default function InvoiceCreate({
         destination_client_id: filters.destination_client_id ?? "",
         tanggal_awal: filters.tanggal_awal ?? "",
         tanggal_akhir: filters.tanggal_akhir ?? "",
+        category: filters.category ?? "",
     });
 
     const form = useForm<InvoiceForm>({
@@ -131,6 +132,18 @@ export default function InvoiceCreate({
                                 {client.nama}
                             </option>
                         ))}
+                    </NativeSelect>
+                </Field>
+                <Field label="Kategori">
+                    <NativeSelect
+                        value={period.category}
+                        onChange={(e) =>
+                            setPeriod({ ...period, category: e.target.value })
+                        }
+                    >
+                        <option value="">Semua kategori</option>
+                        <option value="kontrak">Kontrak</option>
+                        <option value="outsourcing">Outsourcing</option>
                     </NativeSelect>
                 </Field>
                 <Field label="Tanggal awal" error={errors.tanggal_awal}>

@@ -39,7 +39,7 @@ class InvoiceController extends Controller
 
     public function create(Request $request): Response
     {
-        $filters = $request->only(['client_id', 'destination_client_id', 'tanggal_awal', 'tanggal_akhir']);
+        $filters = $request->only(['client_id', 'destination_client_id', 'tanggal_awal', 'tanggal_akhir', 'category']);
         $ready = ! empty($filters['client_id'])
             && ! empty($filters['tanggal_awal'])
             && ! empty($filters['tanggal_akhir']);
@@ -54,6 +54,7 @@ class InvoiceController extends Controller
                     $filters['destination_client_id'] ?? null,
                     $filters['tanggal_awal'],
                     $filters['tanggal_akhir'],
+                    $filters['category'] ?? null,
                 )
                     ->map(fn ($item): array => [
                         'id' => $item->id,

@@ -16,12 +16,13 @@ class InvoiceBuilder
     /**
      * @return Collection<int, TripItem>
      */
-    public function pendingItems(int $clientId, ?int $destinationClientId, string $from, string $to): Collection
+    public function pendingItems(int $clientId, ?int $destinationClientId, string $from, string $to, ?string $category = null): Collection
     {
         return TripItem::query()
             ->whereHas('trip', fn ($query) => $query
                 ->where('client_id', $clientId)
                 ->when($destinationClientId !== null, fn ($q) => $q->where('destination_client_id', $destinationClientId))
+                ->when($category !== null && $category !== '', fn ($q) => $q->where('category', $category))
                 ->whereNull('invoice_id')
                 ->whereBetween('tanggal', [$from, $to]))
             ->with(['trip.vehicle', 'trip.client', 'trip.destinationClient'])
