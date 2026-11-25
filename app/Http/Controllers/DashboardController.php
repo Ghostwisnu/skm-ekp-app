@@ -27,14 +27,16 @@ class DashboardController extends Controller
             $fromDate = Carbon::parse($from)->startOfDay();
             $tripQuery->whereDate('tanggal', '>=', $fromDate);
             $dailyCostQuery->whereDate('tanggal', '>=', $fromDate);
-            $invoiceQuery->whereDate('tanggal_awal', '>=', $fromDate);
+            // Include invoices that overlap with the date range
+            // Invoice must start on or before the filter end, and end on or after filter start
+            $invoiceQuery->whereDate('tanggal_akhir', '>=', Carbon::parse($from)->startOfDay());
         }
 
         if ($to) {
             $toDate = Carbon::parse($to)->endOfDay();
             $tripQuery->whereDate('tanggal', '<=', $toDate);
             $dailyCostQuery->whereDate('tanggal', '<=', $toDate);
-            $invoiceQuery->whereDate('tanggal_akhir', '<=', $toDate);
+            $invoiceQuery->whereDate('tanggal_awal', '<=', $toDate);
         }
 
         $periode = $this->buildPeriodeString($from, $to);
@@ -54,7 +56,7 @@ class DashboardController extends Controller
                     ->get()
                     ->sum(fn ($dc) => $dc->uang_jalan + $dc->extras->sum('nominal')),
                 'invoice_count' => (clone $invoiceQuery)->count(),
-                'invoice_total' => (int) (clone $invoiceQuery)->sum('total'),
+                'invoice_total' => (int) (clone $invoiceQuery)->sum('subtotal'),
             ],
             'recentTrips' => (clone $tripQuery)
                 ->with(['vehicle', 'client'])
