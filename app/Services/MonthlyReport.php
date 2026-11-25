@@ -90,22 +90,32 @@ class MonthlyReport
             }
         }
 
+        // Get trips that have invoices with these dates
+        $invoiceIdsWithTrips = $trips->filter(fn ($trip) => $trip->invoice_id !== null)
+            ->pluck('invoice_id')
+            ->unique()
+            ->toArray();
+
         // Aggregate trips by date
         foreach ($trips as $trip) {
             $date = $trip->tanggal->toDateString();
             if (isset($dates[$date])) {
                 $dates[$date]['trip'] += 1;
+                // Add invoice line totals for trips
                 $dates[$date]['invoice'] += (int) $trip->nilai_invoice;
-            } else {
-                // Date not in range, skip
             }
         }
 
         // Aggregate invoices by date (using tanggal_awal as reference)
+        // Only for invoices that have no trips with invoice lines in the date range
+        // Use subtotal (before PPN and PPH) as requested by user
         foreach ($invoices as $invoice) {
+            if (in_array($invoice->id, $invoiceIdsWithTrips)) {
+                continue; // Already counted via trip lines
+            }
             $date = $invoice->tanggal_awal->toDateString();
             if (isset($dates[$date])) {
-                $dates[$date]['invoice'] += (int) $invoice->total;
+                $dates[$date]['invoice'] += (int) $invoice->subtotal;
             }
         }
 
