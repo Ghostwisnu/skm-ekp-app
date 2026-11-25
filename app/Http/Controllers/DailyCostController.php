@@ -188,8 +188,13 @@ class DailyCostController extends Controller
 
         DB::transaction(function () use ($data): void {
             foreach ($data['previewData'] as $row) {
-                $plat = strtoupper(trim((string) $row['plat']));
+                $plat = strtoupper(trim((string) ($row['plat'] ?? '')));
                 if ($plat === '') {
+                    continue;
+                }
+
+                $noSuratJalan = strtoupper(trim((string) ($row['no_surat_jalan'] ?? '')));
+                if ($noSuratJalan === '') {
                     continue;
                 }
 
@@ -198,9 +203,9 @@ class DailyCostController extends Controller
                 $dailyCost = DailyCost::query()->create([
                     'tanggal' => $row['tanggal'] ?? now()->format('Y-m-d'),
                     'no_plat' => $plat,
-                    'no_surat_jalan' => strtoupper(trim((string) $row['no_surat_jalan'])),
+                    'no_surat_jalan' => $noSuratJalan,
                     'uang_jalan' => (int) ($row['uang_jalan'] ?? 0),
-                    'catatan' => trim((string) $row['catatan']),
+                    'catatan' => trim((string) ($row['catatan'] ?? '')),
                 ]);
 
                 if (! empty($row['extras'])) {

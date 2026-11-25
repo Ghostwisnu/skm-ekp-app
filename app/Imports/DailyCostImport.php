@@ -40,6 +40,17 @@ class DailyCostImport implements ToCollection, WithHeadingRow
             $uangJalan = (int) ($rowData['uang_jalan'] ?? 0);
             $catatan = trim((string) ($rowData['catatan'] ?? ''));
 
+            // Skip rows without required fields
+            if ($plat === '') {
+                $this->errors[] = "Baris " . ($index + 1) . ": plat/kendaraan wajib diisi";
+                continue;
+            }
+
+            if ($noSuratJalan === '') {
+                $this->errors[] = "Baris " . ($index + 1) . ": no_surat_jalan wajib diisi";
+                continue;
+            }
+
             // Extract extras
             $extras = [];
             $i = 1;
@@ -101,18 +112,24 @@ class DailyCostImport implements ToCollection, WithHeadingRow
         }
 
         foreach ($this->previewData as $row) {
-            $plat = strtoupper(trim((string) $row['plat']));
+            $plat = strtoupper(trim((string) ($row['plat'] ?? '')));
             if ($plat === '') {
                 continue;
             }
+
+            $noSuratJalan = strtoupper(trim((string) ($row['no_surat_jalan'] ?? '')));
+            if ($noSuratJalan === '') {
+                continue;
+            }
+
             $vehicle = Vehicle::query()->firstOrCreate(['plat' => $plat]);
 
             $dailyCost = DailyCost::query()->create([
                 'tanggal' => $row['tanggal'] ?? now()->format('Y-m-d'),
                 'no_plat' => $plat,
-                'no_surat_jalan' => strtoupper(trim((string) $row['no_surat_jalan'])),
+                'no_surat_jalan' => $noSuratJalan,
                 'uang_jalan' => (int) ($row['uang_jalan'] ?? 0),
-                'catatan' => trim((string) $row['catatan']),
+                'catatan' => trim((string) ($row['catatan'] ?? '')),
             ]);
 
             if (! empty($row['extras'])) {
