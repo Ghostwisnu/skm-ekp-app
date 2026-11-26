@@ -14,6 +14,7 @@ interface Props {
         jenis_barang: string;
         qty_barang: number;
         total_harga: number;
+        is_auto_generated?: boolean;
     }>;
     grouped: Array<{
         no_surat_jalan: string;
@@ -71,7 +72,12 @@ export default function ImportPreviewTrip({ previewData, grouped, errors }: Prop
                     {grouped.map((group, index) => (
                         <div key={index} className="rounded-lg border bg-card p-4">
                             <div className="mb-2 flex items-center justify-between">
-                                <h4 className="font-semibold">{group.no_surat_jalan}</h4>
+                                <h4 className="font-semibold">
+                                    {group.no_surat_jalan}
+                                    {previewData.find(d => d.no_surat_jalan === group.no_surat_jalan)?.is_auto_generated && (
+                                        <span className="text-xs text-muted-foreground ml-2">(Otomatis)</span>
+                                    )}
+                                </h4>
                                 <span className="text-xs text-muted-foreground">
                                     {group.tanggal} • {group.category}
                                 </span>

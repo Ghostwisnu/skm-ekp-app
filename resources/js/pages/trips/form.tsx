@@ -222,10 +222,11 @@ export default function TripForm({
                             onChange={(event) => form.setData("tanggal", event.target.value)}
                         />
                     </Field>
-                    <Field label={<><strong>No. Surat Jalan</strong> <RequiredBadge /></>} error={form.errors.no_surat_jalan}>
+                    <Field label={<><strong>No. Surat Jalan</strong>{' '}<span className="text-xs text-muted-foreground">(Kosongkan untuk otomatis)</span></>} error={form.errors.no_surat_jalan}>
                         <Input
                             value={form.data.no_surat_jalan}
                             onChange={(event) => form.setData("no_surat_jalan", event.target.value)}
+                            placeholder="Kosongkan untuk auto-generate"
                         />
                     </Field>
                     <Field label={<><strong>Plat</strong> <RequiredBadge /></>} error={form.errors.plat}>
