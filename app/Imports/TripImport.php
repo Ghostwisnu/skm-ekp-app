@@ -6,6 +6,7 @@ use App\Models\Client;
 use App\Models\ClientGood;
 use App\Models\Trip;
 use App\Models\Vehicle;
+use App\Services\NoSuratJalanGenerator;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\ToCollection;
@@ -37,44 +38,46 @@ class TripImport implements ToCollection, WithHeadingRow
                 continue;
             }
 
-            $noSuratJalan = (string) ($row['no_surat_jalan'] ?? '');
-            if ($noSuratJalan === '') {
-                $this->errors[] = "Baris ".($index+1).": no_surat_jalan wajib diisi";
-                continue;
-            }
-
-            $plat = trim((string) ($row['plat'] ?? ''));
+            $tanggal = $this->transformDate($rowData['tanggal'] ?? null);
+            $plat = trim((string) ($rowData['plat'] ?? ''));
             if ($plat === '') {
                 $this->errors[] = "Baris ".($index+1).": plat/kendaraan wajib diisi";
                 continue;
             }
 
-            $clientName = trim((string) ($row['client_name'] ?? ''));
+            $noSuratJalan = strtoupper(trim((string) ($rowData['no_surat_jalan'] ?? '')));
+            
+            // Auto-generate no_surat_jalan if not provided
+            if ($noSuratJalan === '') {
+                $noSuratJalan = NoSuratJalanGenerator::generate($tanggal, $plat);
+            }
+
+            $clientName = trim((string) ($rowData['client_name'] ?? ''));
             if ($clientName === '') {
                 $this->errors[] = "Baris ".($index+1).": nama client wajib diisi";
                 continue;
             }
 
-            $category = strtolower(trim((string) ($row['category'] ?? 'kontrak')));
+            $category = strtolower(trim((string) ($rowData['category'] ?? 'kontrak')));
             $category = in_array($category, ['kontrak', 'outsourcing']) ? $category : 'kontrak';
 
-            $jenisBarang = trim((string) ($row['jenis_barang'] ?? ''));
+            $jenisBarang = trim((string) ($rowData['jenis_barang'] ?? ''));
             if ($jenisBarang === '') {
                 $this->errors[] = "Baris ".($index+1).": jenis barang wajib diisi";
                 continue;
             }
 
             $rowData = [
-                'tanggal' => $this->transformDate($row['tanggal'] ?? null),
+                'tanggal' => $tanggal,
                 'plat' => $plat,
                 'no_surat_jalan' => $noSuratJalan,
                 'category' => $category,
                 'client_name' => $clientName,
-                'destination_client' => trim((string) ($row['destination_client'] ?? '')),
-                'tujuan' => trim((string) ($row['tujuan'] ?? '')),
+                'destination_client' => trim((string) ($rowData['destination_client'] ?? '')),
+                'tujuan' => trim((string) ($rowData['tujuan'] ?? '')),
                 'jenis_barang' => $jenisBarang,
-                'qty_barang' => (float) ($row['qty_barang'] ?? 0),
-                'total_harga' => (int) ($row['total_harga'] ?? 0),
+                'qty_barang' => (float) ($rowData['qty_barang'] ?? 0),
+                'total_harga' => (int) ($rowData['total_harga'] ?? 0),
             ];
 
             $this->previewData[] = $rowData;

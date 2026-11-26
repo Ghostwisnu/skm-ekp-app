@@ -7,6 +7,7 @@ use App\Http\Requests\DailyCostRequest;
 use App\Imports\DailyCostImport;
 use App\Models\DailyCost;
 use App\Models\Vehicle;
+use App\Services\NoSuratJalanGenerator;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -45,10 +46,16 @@ class DailyCostController extends Controller
     {
         $data = $request->validated();
 
+        // Auto-generate no_surat_jalan if not provided
+        $noSuratJalan = trim((string) ($data['no_surat_jalan'] ?? ''));
+        if ($noSuratJalan === '') {
+            $noSuratJalan = NoSuratJalanGenerator::generateForDailyCost($data['tanggal'], $data['no_plat']);
+        }
+
         $dailyCost = DailyCost::query()->create([
             'tanggal' => $data['tanggal'],
             'no_plat' => $data['no_plat'],
-            'no_surat_jalan' => $data['no_surat_jalan'],
+            'no_surat_jalan' => $noSuratJalan,
             'uang_jalan' => $data['uang_jalan'],
             'catatan' => $data['catatan'] ?? null,
         ]);
@@ -193,15 +200,18 @@ class DailyCostController extends Controller
                     continue;
                 }
 
+                $tanggal = $row['tanggal'] ?? now()->format('Y-m-d');
                 $noSuratJalan = strtoupper(trim((string) ($row['no_surat_jalan'] ?? '')));
+                
+                // Auto-generate if somehow missing at store time
                 if ($noSuratJalan === '') {
-                    continue;
+                    $noSuratJalan = NoSuratJalanGenerator::generateForDailyCost($tanggal, $plat);
                 }
 
                 $vehicle = Vehicle::query()->firstOrCreate(['plat' => $plat]);
 
                 $dailyCost = DailyCost::query()->create([
-                    'tanggal' => $row['tanggal'] ?? now()->format('Y-m-d'),
+                    'tanggal' => $tanggal,
                     'no_plat' => $plat,
                     'no_surat_jalan' => $noSuratJalan,
                     'uang_jalan' => (int) ($row['uang_jalan'] ?? 0),

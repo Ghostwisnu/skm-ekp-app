@@ -4,6 +4,7 @@ namespace App\Imports;
 
 use App\Models\DailyCost;
 use App\Models\Vehicle;
+use App\Services\NoSuratJalanGenerator;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\ToCollection;
@@ -36,19 +37,20 @@ class DailyCostImport implements ToCollection, WithHeadingRow
 
             $tanggal = $this->transformDate($rowData['tanggal'] ?? null);
             $plat = strtoupper(trim((string) ($rowData['plat'] ?? '')));
-            $noSuratJalan = strtoupper(trim((string) ($rowData['no_surat_jalan'] ?? '')));
-            $uangJalan = (int) ($rowData['uang_jalan'] ?? 0);
-            $catatan = trim((string) ($rowData['catatan'] ?? ''));
-
-            // Skip rows without required fields
+            
+            // Skip rows without required plat field
             if ($plat === '') {
                 $this->errors[] = "Baris " . ($index + 1) . ": plat/kendaraan wajib diisi";
                 continue;
             }
 
+            $uangJalan = (int) ($rowData['uang_jalan'] ?? 0);
+            $catatan = trim((string) ($rowData['catatan'] ?? ''));
+
+            // Auto-generate no_surat_jalan if not provided
+            $noSuratJalan = strtoupper(trim((string) ($rowData['no_surat_jalan'] ?? '')));
             if ($noSuratJalan === '') {
-                $this->errors[] = "Baris " . ($index + 1) . ": no_surat_jalan wajib diisi";
-                continue;
+                $noSuratJalan = NoSuratJalanGenerator::generateForDailyCost($tanggal, $plat);
             }
 
             // Extract extras
