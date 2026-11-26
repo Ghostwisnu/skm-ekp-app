@@ -47,10 +47,9 @@ class DailyCostController extends Controller
         $data = $request->validated();
 
         // Auto-generate no_surat_jalan if not provided
-        $generator = new NoSuratJalanGenerator();
-        $noSuratJalan = trim((string) ($data["no_surat_jalan"] ?? ""));
-        if ($noSuratJalan === "") {
-            $noSuratJalan = $generator->generateForDailyCost();
+        $noSuratJalan = trim((string) ($data['no_surat_jalan'] ?? ''));
+        if ($noSuratJalan === '') {
+            $noSuratJalan = NoSuratJalanGenerator::generateForDailyCost($data['tanggal'], $data['no_plat']);
         }
 
         $dailyCost = DailyCost::query()->create([
@@ -208,15 +207,18 @@ class DailyCostController extends Controller
                     continue;
                 }
 
+                $tanggal = $row['tanggal'] ?? now()->format('Y-m-d');
                 $noSuratJalan = strtoupper(trim((string) ($row['no_surat_jalan'] ?? '')));
+                
+                // Auto-generate if somehow missing at store time
                 if ($noSuratJalan === '') {
-                    continue;
+                    $noSuratJalan = NoSuratJalanGenerator::generateForDailyCost($tanggal, $plat);
                 }
 
                 $vehicle = Vehicle::query()->firstOrCreate(['plat' => $plat]);
 
                 $dailyCost = DailyCost::query()->create([
-                    'tanggal' => $row['tanggal'] ?? now()->format('Y-m-d'),
+                    'tanggal' => $tanggal,
                     'no_plat' => $plat,
                     'no_surat_jalan' => $noSuratJalan,
                     'uang_jalan' => (int) ($row['uang_jalan'] ?? 0),

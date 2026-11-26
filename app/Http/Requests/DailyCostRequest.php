@@ -16,7 +16,7 @@ class DailyCostRequest extends FormRequest
             'tanggal' => ['required', 'date'],
             'no_plat' => ['required', 'string', 'max:30'],
             'no_surat_jalan' => [
-                'required',
+                'nullable',
                 'string',
                 'max:255',
                 Rule::unique('daily_costs', 'no_surat_jalan')->ignore($this->route('dailyCost')),

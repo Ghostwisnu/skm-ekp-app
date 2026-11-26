@@ -85,10 +85,11 @@ class TripController extends Controller
             $data['vehicle_id'] = $vehicle->id;
             $data['sopir'] = $vehicle->nama_supir ?? '';
 
-
             // Auto-generate no_surat_jalan if not provided
-            $generator = new NoSuratJalanGenerator();
-            $data["no_surat_jalan"] = $generator->resolve($data["no_surat_jalan"] ?? null, "trip");
+            $data['no_surat_jalan'] = trim((string) ($data['no_surat_jalan'] ?? ''));
+            if ($data['no_surat_jalan'] === '') {
+                $data['no_surat_jalan'] = NoSuratJalanGenerator::generate($data['tanggal'], $vehicle->plat);
+            }
             $trip = Trip::query()->create($data);
             $trip->items()->createMany($this->resolveItems(
                 (int) $data['client_id'],
