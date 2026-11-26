@@ -14,14 +14,16 @@ return new class extends Migration
     {
         // First, drop any existing unique constraints using raw SQL
         // This handles both 'trips' and 'daily_costs' tables
+        // Use the correct index names: trips_no_surat_jalan_unique and daily_costs_no_surat_jalan_unique
+        // SQLite uses DROP INDEX index_name (not ALTER TABLE DROP INDEX)
         try {
-            DB::statement("ALTER TABLE trips DROP INDEX no_surat_jalan");
+            DB::statement("DROP INDEX IF EXISTS trips_no_surat_jalan_unique");
         } catch (\Exception $e) {
             // Index may not exist, continue
         }
 
         try {
-            DB::statement("ALTER TABLE daily_costs DROP INDEX no_surat_jalan");
+            DB::statement("DROP INDEX IF EXISTS daily_costs_no_surat_jalan_unique");
         } catch (\Exception $e) {
             // Index may not exist, continue
         }
