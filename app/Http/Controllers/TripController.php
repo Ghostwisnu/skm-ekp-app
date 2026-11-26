@@ -267,7 +267,9 @@ class TripController extends Controller
             return redirect()->route('trips.import')->with('error', 'Sesi data preview habis.');
         }
 
-        DB::transaction(function () use ($data): void {
+        $errors = [];
+
+        DB::transaction(function () use ($data, &$errors): void {
             $grouped = collect($data['previewData'])->groupBy('no_surat_jalan');
 
             foreach ($grouped as $noSuratJalan => $rows) {
@@ -314,61 +316,70 @@ class TripController extends Controller
                     'invoice_id' => null,
                 ];
 
-                $trip = Trip::query()->create($tripData);
+                try {
+                    $trip = Trip::query()->create($tripData);
 
-                $items = [];
-                $goodsClientId = $category === 'kontrak' ? $destinationClientId : $client->id;
-                $sourceClient = $client;
+                    $items = [];
+                    $goodsClientId = $category === 'kontrak' ? $destinationClientId : $client->id;
+                    $sourceClient = $client;
 
-                foreach ($rows as $row) {
-                    $jenisBarang = trim((string) ($row['jenis_barang'] ?? ''));
-                    if ($jenisBarang === '') {
-                        continue;
+                    foreach ($rows as $row) {
+                        $jenisBarang = trim((string) ($row['jenis_barang'] ?? ''));
+                        if ($jenisBarang === '') {
+                            continue;
+                        }
+
+                        $qty = (float) ($row['qty_barang'] ?? 0);
+                        $totalHarga = (int) ($row['total_harga'] ?? 0);
+
+                        $good = ClientGood::query()
+                            ->where('client_id', $goodsClientId)
+                            ->where('jenis_barang', $jenisBarang)
+                            ->first();
+
+                        if (! $good) {
+                            $good = ClientGood::query()->create([
+                                'client_id' => $goodsClientId,
+                                'jenis_barang' => $jenisBarang,
+                                'pricing_mode' => 'per_qty',
+                                'harga' => 0,
+                            ]);
+                        }
+
+                        $route = match ($category) {
+                            'outsourcing' => $sourceClient->nama.' → '.($row['tujuan'] ?? '-'),
+                            default => $destinationClientId
+                                ? $sourceClient->nama.' → '.Client::query()->find($destinationClientId)->nama
+                                : $sourceClient->nama,
+                        };
+
+                        $items[] = [
+                            'client_good_id' => $good->id,
+                            'jenis_barang' => $good->jenis_barang,
+                            'rute' => $route,
+                            'pricing_mode' => $good->pricing_mode,
+                            'qty_barang' => $qty,
+                            'tonase_kg' => $qty,
+                            'harga_satuan' => $good->harga,
+                            'total_harga' => $totalHarga,
+                        ];
                     }
 
-                    $qty = (float) ($row['qty_barang'] ?? 0);
-                    $totalHarga = (int) ($row['total_harga'] ?? 0);
-
-                    $good = ClientGood::query()
-                        ->where('client_id', $goodsClientId)
-                        ->where('jenis_barang', $jenisBarang)
-                        ->first();
-
-                    if (! $good) {
-                        $good = ClientGood::query()->create([
-                            'client_id' => $goodsClientId,
-                            'jenis_barang' => $jenisBarang,
-                            'pricing_mode' => 'per_qty',
-                            'harga' => 0,
-                        ]);
+                    if (! empty($items)) {
+                        $trip->items()->createMany($items);
                     }
-
-                    $route = match ($category) {
-                        'outsourcing' => $sourceClient->nama.' → '.($row['tujuan'] ?? '-'),
-                        default => $destinationClientId
-                            ? $sourceClient->nama.' → '.Client::query()->find($destinationClientId)->nama
-                            : $sourceClient->nama,
-                    };
-
-                    $items[] = [
-                        'client_good_id' => $good->id,
-                        'jenis_barang' => $good->jenis_barang,
-                        'rute' => $route,
-                        'pricing_mode' => $good->pricing_mode,
-                        'qty_barang' => $qty,
-                        'tonase_kg' => $qty,
-                        'harga_satuan' => $good->harga,
-                        'total_harga' => $totalHarga,
-                    ];
-                }
-
-                if (! empty($items)) {
-                    $trip->items()->createMany($items);
+                } catch (\Exception $e) {
+                    // Handle duplicate no_surat_jalan or other database errors
+                    $errors[] = "No Surat Jalan " . $noSuratJalan . ": " . $e->getMessage();
                 }
             }
         });
 
-        Inertia::flash('toast', ['type' => 'success', 'message' => 'Import trip berhasil.']);
+        if (! empty($errors)) {
+            Inertia::flash('toast', ['type' => 'error', 'message' => 'Beberapa data gagal diimport: ' . implode('; ', $errors)]);
+        } else {
+            Inertia::flash('toast', ['type' => 'success', 'message' => 'Import trip berhasil.']);
+        }
 
         return to_route('trips.index');
     }

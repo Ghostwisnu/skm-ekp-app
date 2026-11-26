@@ -140,11 +140,16 @@ class TripImport implements ToCollection, WithHeadingRow
                 'invoice_id' => null,
             ];
 
-            $trip = Trip::query()->create($tripData);
+            try {
+                $trip = Trip::query()->create($tripData);
 
-            $items = $this->resolveItems($trip, $rows, $category, $destinationClientId);
-            if (! empty($items)) {
-                $trip->items()->createMany($items);
+                $items = $this->resolveItems($trip, $rows, $category, $destinationClientId);
+                if (! empty($items)) {
+                    $trip->items()->createMany($items);
+                }
+            } catch (\Exception $e) {
+                // Handle duplicate no_surat_jalan or other database errors
+                $this->errors[] = "No Surat Jalan " . $noSuratJalan . ": " . $e->getMessage();
             }
         }
     }
