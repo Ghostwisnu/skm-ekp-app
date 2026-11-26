@@ -62,3 +62,29 @@ test('a daily cost can be updated', function () {
 
     expect($cost->fresh()->uang_jalan)->toBe(500);
 });
+
+test('daily cost auto-generates no_surat_jalan when not provided', function () {
+    $payload = [
+        'tanggal' => now()->toDateString(),
+        'no_plat' => 'B 1234',
+        'no_surat_jalan' => null,
+        'uang_jalan' => 100,
+    ];
+
+    $this->post('/daily-costs', $payload)->assertRedirect();
+    $cost = DailyCost::query()->firstOrFail();
+    expect($cost->no_surat_jalan)->toMatch('/^DC-\d{8}-\d{3}$/');
+});
+
+test('daily cost auto-generates no_surat_jalan when empty string provided', function () {
+    $payload = [
+        'tanggal' => now()->toDateString(),
+        'no_plat' => 'B 5678',
+        'no_surat_jalan' => '',
+        'uang_jalan' => 200,
+    ];
+
+    $this->post('/daily-costs', $payload)->assertRedirect();
+    $cost = DailyCost::where('no_plat', 'B 5678')->firstOrFail();
+    expect($cost->no_surat_jalan)->toMatch('/^DC-\d{8}-\d{3}$/');
+});

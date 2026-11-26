@@ -9,6 +9,7 @@ use App\Models\Client;
 use App\Models\ClientGood;
 use App\Models\Trip;
 use App\Models\Vehicle;
+use App\Services\NoSuratJalanGenerator;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -84,6 +85,10 @@ class TripController extends Controller
             $data['vehicle_id'] = $vehicle->id;
             $data['sopir'] = $vehicle->nama_supir ?? '';
 
+
+            // Auto-generate no_surat_jalan if not provided
+            $generator = new NoSuratJalanGenerator();
+            $data["no_surat_jalan"] = $generator->resolve($data["no_surat_jalan"] ?? null, "trip");
             $trip = Trip::query()->create($data);
             $trip->items()->createMany($this->resolveItems(
                 (int) $data['client_id'],

@@ -29,7 +29,7 @@ class TripRequest extends FormRequest
                 'string',
                 'max:255',
             ],
-            'no_surat_jalan' => ['required', 'string', 'max:255', Rule::unique('trips', 'no_surat_jalan')->ignore($this->route('trip'))],
+            'no_surat_jalan' => ['nullable', 'string', 'max:255', Rule::unique('trips', 'no_surat_jalan')->ignore($this->route('trip'))],
             'items' => ['required', 'array', 'min:1'],
             'items.*.client_good_id' => [
                 'nullable', 'sometimes', 'integer',
