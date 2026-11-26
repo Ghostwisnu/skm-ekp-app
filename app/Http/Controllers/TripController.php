@@ -90,7 +90,6 @@ class TripController extends Controller
             if ($data['no_surat_jalan'] === '') {
                 $data['no_surat_jalan'] = NoSuratJalanGenerator::generate($data['tanggal'], $vehicle->plat);
             }
-
             $trip = Trip::query()->create($data);
             $trip->items()->createMany($this->resolveItems(
                 (int) $data['client_id'],
