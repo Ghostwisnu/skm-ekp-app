@@ -50,7 +50,10 @@ class DailyCostImport implements ToCollection, WithHeadingRow
             // Auto-generate no_surat_jalan if not provided
             $noSuratJalan = strtoupper(trim((string) ($rowData['no_surat_jalan'] ?? '')));
             if ($noSuratJalan === '') {
-                $noSuratJalan = NoSuratJalanGenerator::generateForDailyCost($tanggal, $plat);
+                $noSuratJalan = NoSuratJalanGenerator::generateForDailyCost(
+                    $tanggal ?? now()->format('Y-m-d'),
+                    $plat
+                );
             }
 
             // Extract extras
