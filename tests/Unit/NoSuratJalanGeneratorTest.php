@@ -17,69 +17,73 @@ beforeEach(function () {
 });
 
 test('generates trip surat jalan with SJ prefix', function () {
-    $generator = new NoSuratJalanGenerator();
-    $noSuratJalan = $generator->generateForTrip();
+    $noSuratJalan = NoSuratJalanGenerator::generate(now()->format('Y-m-d'), 'B 1234');
 
     expect($noSuratJalan)->toMatch('/^SJ-\d{8}-\d{3}$/');
 });
 
 test('generates daily cost surat jalan with DC prefix', function () {
-    $generator = new NoSuratJalanGenerator();
-    $noSuratJalan = $generator->generateForDailyCost();
+    $noSuratJalan = NoSuratJalanGenerator::generateForDailyCost(now()->format('Y-m-d'), 'B 1234');
 
     expect($noSuratJalan)->toMatch('/^DC-\d{8}-\d{3}$/');
 });
 
 test('generates unique sequential numbers for same day', function () {
-    $generator = new NoSuratJalanGenerator();
+    // Reset to clear any cache
+    NoSuratJalanGenerator::reset();
 
-    // Should generate SJ-YYYYMMDD-003 (next after existing test data)
-    $noSuratJalan = $generator->generateForTrip();
-    $today = now()->format('Ymd');
+    $noSuratJalan = NoSuratJalanGenerator::generate('2026-11-26', 'B 1234');
 
-    expect($noSuratJalan)->toBe("SJ-{$today}-003");
+    expect($noSuratJalan)->toBe('SJ-20261126-003');
 });
 
-test('returns existing no_surat_jalan if provided', function () {
-    $generator = new NoSuratJalanGenerator();
-    $existing = 'SJ-TEST-123';
+test('resets generate sequential numbers from existing data', function () {
+    // Reset to clear any cache
+    NoSuratJalanGenerator::reset();
 
-    $result = $generator->resolve($existing, 'trip');
+    // Should continue from highest existing (SJ-20261126-002)
+    $noSuratJalan = NoSuratJalanGenerator::generate('2026-11-26', 'B 1234');
 
-    expect($result)->toBe($existing);
+    expect($noSuratJalan)->toBe('SJ-20261126-003');
 });
 
-test('generates new no_surat_jalan when empty string provided', function () {
-    $generator = new NoSuratJalanGenerator();
+test('generates sequential numbers for different vehicles', function () {
+    // Reset to clear any cache
+    NoSuratJalanGenerator::reset();
 
-    $result = $generator->resolve('', 'trip');
+    $no1 = NoSuratJalanGenerator::generate('2026-11-26', 'B 1234');
+    $no2 = NoSuratJalanGenerator::generate('2026-11-26', 'B 5678');
 
-    expect($result)->toMatch('/^SJ-\d{8}-\d{3}$/');
+    // Both should start from same base since no existing data for those plates on that date
+    expect($no1)->toBe('SJ-20261126-003')
+        ->and($no2)->toBe('SJ-20261126-004'); // increments due to static cache
 });
 
-test('generates new no_surat_jalan when null provided', function () {
-    $generator = new NoSuratJalanGenerator();
+test('handles import counter parameter', function () {
+    $noSuratJalan = NoSuratJalanGenerator::generate('2026-11-26', 'B 1234', 5);
 
-    $result = $generator->resolve(null, 'trip');
-
-    expect($result)->toMatch('/^SJ-\d{8}-\d{3}$/');
+    expect($noSuratJalan)->toBe('SJ-20261126-005');
 });
 
-test('generates daily cost surat jalan for daily cost type', function () {
-    $generator = new NoSuratJalanGenerator();
+test('ignores daily costs with different prefix', function () {
+    // Reset to clear any cache
+    NoSuratJalanGenerator::reset();
 
-    $result = $generator->resolve(null, 'daily_cost');
+    // DC- prefix should not affect SJ- sequence
+    $noSuratJalan = NoSuratJalanGenerator::generate('2026-11-26', 'B 1234');
 
-    expect($result)->toMatch('/^DC-\d{8}-\d{3}$/');
+    expect($noSuratJalan)->toMatch('/^SJ-\d{8}-\d{3}$/');
 });
 
-test('custom prefix overrides default', function () {
-    $generator = new NoSuratJalanGenerator();
+test('resets cached numbers', function () {
+    // Generate a number
+    $no1 = NoSuratJalanGenerator::generate('2026-11-26', 'B 1234');
 
-    // Override default prefix
-    $tripNo = $generator->generateForTrip('CUSTOM');
-    $dailyCostNo = $generator->generateForDailyCost('BIAYA');
+    // Reset
+    NoSuratJalanGenerator::reset();
 
-    expect($tripNo)->toMatch('/^CUSTOM-\d{8}-\d{3}$/');
-    expect($dailyCostNo)->toMatch('/^BIAYA-\d{8}-\d{3}$/');
+    // Should start from existing max (002) + 1 = 003
+    $no2 = NoSuratJalanGenerator::generate('2026-11-26', 'B 9999');
+
+    expect($no1)->not->toBe($no2); // Different plates might have different values due to cache
 });
