@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -12,13 +13,22 @@ return new class extends Migration
     public function up(): void
     {
         // Drop existing unique constraints first to avoid duplicate key error
-        Schema::table('trips', function (Blueprint $table) {
-            $table->dropUnique(['no_surat_jalan']);
-        });
+        // Use try-catch for SQLite compatibility since it doesn't track indexes the same way
+        try {
+            Schema::table('trips', function (Blueprint $table) {
+                $table->dropUnique(['no_surat_jalan']);
+            });
+        } catch (\Exception $e) {
+            // Index may not exist, continue
+        }
 
-        Schema::table('daily_costs', function (Blueprint $table) {
-            $table->dropUnique(['no_surat_jalan']);
-        });
+        try {
+            Schema::table('daily_costs', function (Blueprint $table) {
+                $table->dropUnique(['no_surat_jalan']);
+            });
+        } catch (\Exception $e) {
+            // Index may not exist, continue
+        }
 
         // Now modify the columns to be nullable and add unique constraints
         Schema::table('trips', function (Blueprint $table) {
