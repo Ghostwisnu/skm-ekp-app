@@ -130,16 +130,21 @@ class DailyCostImport implements ToCollection, WithHeadingRow
 
             $vehicle = Vehicle::query()->firstOrCreate(['plat' => $plat]);
 
-            $dailyCost = DailyCost::query()->create([
-                'tanggal' => $row['tanggal'] ?? now()->format('Y-m-d'),
-                'no_plat' => $plat,
-                'no_surat_jalan' => $noSuratJalan,
-                'uang_jalan' => (int) ($row['uang_jalan'] ?? 0),
-                'catatan' => trim((string) ($row['catatan'] ?? '')),
-            ]);
+            try {
+                $dailyCost = DailyCost::query()->create([
+                    'tanggal' => $row['tanggal'] ?? now()->format('Y-m-d'),
+                    'no_plat' => $plat,
+                    'no_surat_jalan' => $noSuratJalan,
+                    'uang_jalan' => (int) ($row['uang_jalan'] ?? 0),
+                    'catatan' => trim((string) ($row['catatan'] ?? '')),
+                ]);
 
-            if (! empty($row['extras'])) {
-                $dailyCost->extras()->createMany($row['extras']);
+                if (! empty($row['extras'])) {
+                    $dailyCost->extras()->createMany($row['extras']);
+                }
+            } catch (\Exception $e) {
+                // Handle duplicate no_surat_jalan or other database errors
+                $this->errors[] = "Baris " . ($row['row_number'] ?? '?') . ": " . $e->getMessage();
             }
         }
     }
