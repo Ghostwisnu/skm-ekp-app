@@ -27,6 +27,7 @@ type InvoiceForm = {
     destination_client_id: string;
     tanggal_awal: string;
     tanggal_akhir: string;
+    category: string;
     no_invoice: string;
     ppn_persen: string;
     pph_persen: string;

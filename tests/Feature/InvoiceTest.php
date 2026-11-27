@@ -323,3 +323,66 @@ test('default ppn comes from settings', function () {
 
     expect(Setting::ppnDefault())->toBe(10.0);
 });
+
+test('invoice can be created with outsourcing category filter', function () {
+    // Create trips with outsourcing category
+    $outsourcingClient = Client::factory()->create(['nama' => 'Outsourcing Client']);
+    $vehicle = Vehicle::factory()->create();
+    
+    $outsourceTrip = Trip::factory()->create([
+        'client_id' => $this->client->id,
+        'tanggal' => '2026-11-15',
+        'category' => 'outsourcing',
+        'tujuan' => 'Surabaya',
+        'no_surat_jalan' => 'SJ-OUTSOURCE-001',
+    ]);
+    TripItem::factory()->create([
+        'trip_id' => $outsourceTrip->id,
+        'jenis_barang' => 'Barang Outsourcing',
+        'qty_barang' => 10,
+        'total_harga' => 10000,
+    ]);
+
+    // Create a kontrak trip for same client
+    $kontrakDestination = Client::factory()->create();
+    $kontrakTrip = Trip::factory()->create([
+        'client_id' => $this->client->id,
+        'destination_client_id' => $kontrakDestination->id,
+        'tanggal' => '2026-11-15',
+        'category' => 'kontrak',
+        'no_surat_jalan' => 'SJ-KONTRAK-001',
+    ]);
+    TripItem::factory()->create([
+        'trip_id' => $kontrakTrip->id,
+        'jenis_barang' => 'Barang Kontrak',
+        'qty_barang' => 5,
+        'total_harga' => 5000,
+    ]);
+
+    // Create invoice with outsourcing category filter
+    $this->post('/invoices', [
+        'client_id' => $this->client->id,
+        'tanggal_awal' => '2026-11-01',
+        'tanggal_akhir' => '2026-11-30',
+        'category' => 'outsourcing',
+        'no_invoice' => 'INV-OUTSOURCE',
+        'ppn_persen' => 0,
+        'prices' => [$outsourceTrip->items->first()->id => 1000],
+    ])->assertRedirect();
+
+    $invoice = Invoice::with('lines')->firstOrFail();
+    expect($invoice->category)->toBe('outsourcing')
+        ->and($invoice->lines)->toHaveCount(1)
+        ->and($invoice->lines->first()->tujuan)->toBe('Surabaya');
+});
+
+test('create page shows category filter with options', function () {
+    $this->get('/invoices/create?'.http_build_query([
+        'client_id' => $this->client->id,
+        'tanggal_awal' => '2026-11-01',
+        'tanggal_akhir' => '2026-11-30',
+        'category' => 'outsourcing',
+    ]))->assertInertia(fn ($page) => $page
+        ->component('invoices/create')
+        ->where('filters.category', 'outsourcing'));
+});

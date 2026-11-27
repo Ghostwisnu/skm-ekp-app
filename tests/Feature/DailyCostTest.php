@@ -63,6 +63,20 @@ test('a daily cost can be updated', function () {
     expect($cost->fresh()->uang_jalan)->toBe(500);
 });
 
+test('a daily cost update auto-generates no_surat_jalan when field is not provided', function () {
+    $cost = DailyCost::factory()->create(['uang_jalan' => 100, 'no_plat' => 'B 1234']);
+
+    $this->put("/daily-costs/{$cost->id}", [
+        'tanggal' => now()->toDateString(),
+        'no_plat' => 'B 1234',
+        'no_surat_jalan' => '',
+        'uang_jalan' => 500,
+    ])->assertRedirect();
+
+    expect($cost->fresh()->uang_jalan)->toBe(500)
+        ->and($cost->fresh()->no_surat_jalan)->toMatch('/^DC-\d{8}-\d{3}$/');
+});
+
 test('daily cost auto-generates no_surat_jalan when not provided', function () {
     $payload = [
         'tanggal' => now()->toDateString(),
