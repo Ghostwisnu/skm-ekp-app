@@ -14,6 +14,7 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Session;
 use Inertia\Inertia;
@@ -53,56 +54,68 @@ class TripController extends Controller
 
     public function store(TripRequest $request): RedirectResponse
     {
-        DB::transaction(function () use ($request): void {
-            $data = $request->safe()->except([
-                'items',
-                'plat',
-                'client_name',
-                'destination_client_name',
-            ]);
-            $category = $request->validated('category') ?? 'kontrak';
-            $data['category'] = $category;
-            $data['tujuan'] = $category === 'outsourcing' ? ($request->validated('tujuan') ?? null) : null;
+        try {
+            DB::transaction(function () use ($request): void {
+                $data = $request->safe()->except([
+                    'items',
+                    'plat',
+                    'client_name',
+                    'destination_client_name',
+                ]);
+                $category = $request->validated('category') ?? 'kontrak';
+                $data['category'] = $category;
+                $data['tujuan'] = $category === 'outsourcing' ? ($request->validated('tujuan') ?? null) : null;
 
-            $client = $this->resolveClient(
-                empty($data['client_id']) ? null : (int) $data['client_id'],
-                $request->validated('client_name'),
-            );
-            $data['client_id'] = $client->id;
-
-            // Resolve destination client from ID or name (for kontrak only)
-            if ($category !== 'outsourcing') {
-                $destinationClient = $this->resolveClient(
-                    empty($data['destination_client_id']) ? null : (int) $data['destination_client_id'],
-                    $request->validated('destination_client_name'),
+                $client = $this->resolveClient(
+                    empty($data['client_id']) ? null : (int) $data['client_id'],
+                    $request->validated('client_name'),
                 );
-                $data['destination_client_id'] = $destinationClient->id;
+                $data['client_id'] = $client->id;
+
+                // Resolve destination client from ID or name (for kontrak only)
+                if ($category !== 'outsourcing') {
+                    $destinationClient = $this->resolveClient(
+                        empty($data['destination_client_id']) ? null : (int) $data['destination_client_id'],
+                        $request->validated('destination_client_name'),
+                    );
+                    $data['destination_client_id'] = $destinationClient->id;
+                } else {
+                    $data['destination_client_id'] = null;
+                }
+
+                $vehicle = Vehicle::query()->firstOrCreate(['plat' => $request->validated('plat')]);
+                $data['vehicle_id'] = $vehicle->id;
+                $data['sopir'] = $vehicle->nama_supir ?? '';
+
+                // Auto-generate no_surat_jalan if not provided
+                $data['no_surat_jalan'] = trim((string) ($data['no_surat_jalan'] ?? ''));
+                if ($data['no_surat_jalan'] === '') {
+                    $data['no_surat_jalan'] = NoSuratJalanGenerator::generate($data['tanggal'], $vehicle->plat);
+                }
+
+                $trip = Trip::query()->create($data);
+                $trip->items()->createMany($this->resolveItems(
+                    (int) $data['client_id'],
+                    $data['destination_client_id'],
+                    $category,
+                    $data['tujuan'],
+                    $request->validated('items'),
+                ));
+            });
+
+            Inertia::flash('toast', ['type' => 'success', 'message' => 'Trip disimpan.']);
+
+            return to_route('trips.index');
+        } catch (\Exception $e) {
+            // Handle duplicate no_surat_jalan error
+            if (str_contains($e->getMessage(), 'UNIQUE constraint') || str_contains($e->getMessage(), 'Integrity constraint violation')) {
+                Inertia::flash('toast', ['type' => 'error', 'message' => 'No Surat Jalan sudah ada. Silakan gunakan nomor lain atau kosongkan untuk auto-generate.']);
             } else {
-                $data['destination_client_id'] = null;
+                Inertia::flash('toast', ['type' => 'error', 'message' => 'Gagal menyimpan trip: ' . $e->getMessage()]);
             }
 
-            $vehicle = Vehicle::query()->firstOrCreate(['plat' => $request->validated('plat')]);
-            $data['vehicle_id'] = $vehicle->id;
-            $data['sopir'] = $vehicle->nama_supir ?? '';
-
-            // Auto-generate no_surat_jalan if not provided
-            $data['no_surat_jalan'] = trim((string) ($data['no_surat_jalan'] ?? ''));
-            if ($data['no_surat_jalan'] === '') {
-                $data['no_surat_jalan'] = NoSuratJalanGenerator::generate($data['tanggal'], $vehicle->plat);
-            }
-            $trip = Trip::query()->create($data);
-            $trip->items()->createMany($this->resolveItems(
-                (int) $data['client_id'],
-                $data['destination_client_id'],
-                $category,
-                $data['tujuan'],
-                $request->validated('items'),
-            ));
-        });
-
-        Inertia::flash('toast', ['type' => 'success', 'message' => 'Trip disimpan.']);
-
-        return to_route('trips.index');
+            return to_route('trips.index');
+        }
     }
 
     public function edit(Trip $trip): Response|RedirectResponse
