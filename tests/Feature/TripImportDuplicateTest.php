@@ -4,10 +4,6 @@ use App\Models\Client;
 use App\Models\Trip;
 use App\Models\User;
 use App\Models\Vehicle;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\TestCase;
-
-uses(TestCase::class, RefreshDatabase::class);
 
 beforeEach(function () {
     $this->actingAs(User::factory()->operator()->create());
