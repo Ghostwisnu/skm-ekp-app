@@ -34,16 +34,18 @@ class InvoiceBuilder
     /**
      * Build an invoice (with snapshot lines) from all pending trips of the period.
      *
-     * @param  array{client_id: int, destination_client_id?: int|null, tanggal_awal: string, tanggal_akhir: string, no_invoice: string, ppn_persen: float|int|string, pph_persen?: float|int|string, prices?: array<int|string, int|string>}  $data
+     * @param  array{client_id: int, destination_client_id?: int|null, tanggal_awal: string, tanggal_akhir: string, category?: string, no_invoice: string, ppn_persen: float|int|string, pph_persen?: float|int|string, prices?: array<int|string, int|string>}  $data
      */
     public function build(array $data, ?User $creator = null): Invoice
     {
         $destinationId = $data['destination_client_id'] ?? null;
+        $category = $data['category'] ?? null;
         $items = $this->pendingItems(
             (int) $data['client_id'],
             $destinationId,
             $data['tanggal_awal'],
             $data['tanggal_akhir'],
+            $category,
         );
 
         if ($items->isEmpty()) {
@@ -61,10 +63,9 @@ class InvoiceBuilder
             }
         }
 
-        return DB::transaction(function () use ($data, $items, $creator, $destinationId): Invoice {
+        return DB::transaction(function () use ($data, $items, $creator, $destinationId, $category): Invoice {
             $ppnPersen = (float) ($data['ppn_persen'] ?? 0);
             $pphPersen = (float) ($data['pph_persen'] ?? 0);
-            $category = 'kontrak';
             $companyDetails = Setting::companyDetails();
             $firstTrip = $items->first()?->trip;
 
@@ -77,7 +78,7 @@ class InvoiceBuilder
                 ...$companyDetails,
                 'ppn_persen' => $ppnPersen,
                 'pph_persen' => $pphPersen,
-                'category' => $firstTrip?->category ?? $category,
+                'category' => $firstTrip?->category ?? $category ?? 'kontrak',
                 'status' => Invoice::STATUS_DRAFT,
                 'created_by' => $creator?->id,
             ]);

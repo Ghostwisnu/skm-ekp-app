@@ -88,10 +88,9 @@ class DailyCostController extends Controller
         $data = $request->validated();
 
         // Auto-generate no_surat_jalan if not provided
-        $generator = new NoSuratJalanGenerator();
         $noSuratJalan = trim((string) ($data["no_surat_jalan"] ?? ""));
         if ($noSuratJalan === "") {
-            $noSuratJalan = $generator->generateForDailyCost();
+            $noSuratJalan = NoSuratJalanGenerator::generateForDailyCost($data['tanggal'], $data['no_plat']);
         }
 
         $dailyCost->update([
