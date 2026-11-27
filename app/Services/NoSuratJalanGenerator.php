@@ -78,14 +78,8 @@ class NoSuratJalanGenerator
         
         $prefix = "DC-{$dateFormatted}";
         
-        // Find the highest sequence number for this date in trips and daily_costs
-        $maxSequence = DB::table('trips')
-            ->where('no_surat_jalan', 'like', $prefix . '-%')
-            ->orderByRaw("SUBSTRING(no_surat_jalan, LENGTH(?) + 2) DESC")
-            ->value('no_surat_jalan');
-        
-        // Also check daily_costs table
-        $maxSequenceDaily = DB::table('daily_costs')
+        // Only check daily_costs table for DC-* prefix (trips use SJ-* prefix)
+        $maxSequence = DB::table('daily_costs')
             ->where('no_surat_jalan', 'like', $prefix . '-%')
             ->orderByRaw("SUBSTRING(no_surat_jalan, LENGTH(?) + 2) DESC")
             ->value('no_surat_jalan');
@@ -95,12 +89,8 @@ class NoSuratJalanGenerator
             $parts = explode('-', $maxSequence);
             $maxOverall = max($maxOverall, (int) end($parts));
         }
-        if ($maxSequenceDaily) {
-            $parts = explode('-', $maxSequenceDaily);
-            $maxOverall = max($maxOverall, (int) end($parts));
-        }
         
-        // Track generated numbers for this import session
+        // Track generated numbers for this session
         $key = "{$prefix}-{$plat}";
         if (!isset(self::$generatedNumbers[$key])) {
             self::$generatedNumbers[$key] = $maxOverall + 1;
